@@ -111,6 +111,27 @@ Revised approach:
 - Everything else (UI states, navigation, out-of-scope items, risks) is
   unchanged from v1.
 
+### v3 — changed because MMKV's native build was stalling on this machine
+
+Android build attempts stalled indefinitely (gradle daemon near-idle CPU, no
+task progress) after adding `react-native-mmkv` — its native C++ code compiles
+via CMake/NDK, which is by far the heaviest native module in the project. The
+human asked directly why native/Turbo modules were needed at all, and then
+asked to avoid them where not truly necessary.
+
+Decision: swap `react-native-mmkv` → `@react-native-async-storage/async-storage`
+for the redux-persist storage engine. AsyncStorage is still technically a
+native module (there's no way to get persistent storage in RN without one),
+but it's the community-standard, much lighter option with no native C++/CMake
+build step, and it already implements redux-persist's expected
+`getItem`/`setItem`/`removeItem` Promise interface directly — no custom adapter
+needed (`src/storage/` folder and `@storage` alias removed entirely).
+
+`react-native-screens` and `react-native-safe-area-context` remain — they're
+required peer dependencies of React Navigation itself and are comparatively
+lightweight to build (no CMake/NDK step), so they were not the source of the
+stall.
+
 ### Revised "done when"
 
 - [x] Theme reflects real Figma colors/type/radii.

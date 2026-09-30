@@ -14,11 +14,16 @@ alwaysApply: true
     server data fetching/caching (one library instead of two state systems).
   - RTK Query `createApi` base slice per API (TMDb), endpoints injected
     per-feature-slice via `injectEndpoints()` — keep the base slice endpoint-free.
-  - `redux-persist` + MMKV storage engine persists the store (including the RTK
-    Query cache) across restarts for offline-first behaviour.
+  - `redux-persist` + `@react-native-async-storage/async-storage` persists the
+    store (including the RTK Query cache) across restarts for offline-first
+    behaviour. Chosen over `react-native-mmkv` (2026-09-30, human-directed):
+    MMKV's native C++/CMake build was stalling first-time Android builds on
+    this machine; AsyncStorage is the lighter, more standard choice and needs
+    no custom storage adapter (it already matches redux-persist's interface).
   - `setupListeners(store.dispatch)` enables RTK Query's `refetchOnFocus` /
     `refetchOnReconnect` for the "refetch when back online" requirement.
-- **Persistence for offline:** MMKV (via a redux-persist storage adapter).
+- **Persistence for offline:** `@react-native-async-storage/async-storage`
+  (used directly as the redux-persist storage engine, no adapter needed).
 - **Client UI state:** Redux Toolkit slices (e.g. `uiSlice`) — not Context/Zustand.
 - **Lists:** FlashList if list performance becomes an issue; FlatList is acceptable for v1 if virtualized correctly
 - **Images:** A performant image component with caching (e.g. expo-image or react-native-fast-image depending on template)

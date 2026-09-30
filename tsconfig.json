@@ -13,8 +13,7 @@
       "@theme/*": ["./src/theme/*"],
       "@types/*": ["./src/types/*"],
       "@api/*": ["./src/api/*"],
-      "@store/*": ["./src/store/*"],
-      "@storage/*": ["./src/storage/*"]
+      "@store/*": ["./src/store/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

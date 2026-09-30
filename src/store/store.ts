@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   FLUSH,
   PAUSE,
@@ -10,7 +11,6 @@ import {
   persistReducer,
   persistStore,
 } from 'redux-persist';
-import { reduxPersistMmkvStorage } from '@storage/reduxPersistStorage';
 import { tmdbApi } from './api/tmdbApi';
 import uiReducer from './slices/uiSlice';
 
@@ -21,7 +21,9 @@ const rootReducer = combineReducers({
 
 const persistConfig = {
   key: 'tentwenty-root',
-  storage: reduxPersistMmkvStorage,
+  // AsyncStorage already implements the Promise-based getItem/setItem/
+  // removeItem interface redux-persist expects, no adapter needed.
+  storage: AsyncStorage,
   // Persist client UI state and the RTK Query cache (offline-first data).
   whitelist: ['ui', tmdbApi.reducerPath],
 };
