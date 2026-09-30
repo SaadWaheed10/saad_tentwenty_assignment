@@ -1,9 +1,18 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { EmptyState, ErrorView, LoadingView, MovieListItem } from '@components/index';
+import {
+  BOTTOM_TAB_BAR_HEIGHT,
+  BottomTabBarVisual,
+  EmptyState,
+  ErrorView,
+  LoadingView,
+  MovieListItem,
+} from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
 import { useGetUpcomingMoviesInfiniteQuery } from '@store/api/moviesApi';
+import { spacing } from '@theme/index';
 import type { TmdbMovie } from '@app-types/tmdb';
 import { styles } from './style';
 
@@ -23,6 +32,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
  * matching Figma's single left-aligned header — no duplicate in-body title.
  */
 function MovieListScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const {
     data,
     isLoading,
@@ -58,6 +68,7 @@ function MovieListScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <LoadingView message="Loading upcoming movies…" />
+        <BottomTabBarVisual />
       </View>
     );
   }
@@ -67,6 +78,7 @@ function MovieListScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <ErrorView description={describeError(error)} onRetry={refetch} />
+        <BottomTabBarVisual />
       </View>
     );
   }
@@ -79,6 +91,7 @@ function MovieListScreen({ navigation }: Props) {
           title="No upcoming movies"
           description="TMDb has nothing scheduled right now — check back soon."
         />
+        <BottomTabBarVisual />
       </View>
     );
   }
@@ -96,7 +109,12 @@ function MovieListScreen({ navigation }: Props) {
         data={movies}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <MovieListItem movie={item} onPress={handleOpenMovie} />}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          // Clears the floating tab bar, which itself sits above the
+          // device's safe-area/system-nav-bar inset (BottomTabBarVisual).
+          { paddingBottom: BOTTOM_TAB_BAR_HEIGHT + insets.bottom + spacing.lg },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={isFetching && !isFetchingNextPage}
@@ -113,6 +131,7 @@ function MovieListScreen({ navigation }: Props) {
         maxToRenderPerBatch={8}
         windowSize={7}
       />
+      <BottomTabBarVisual />
     </View>
   );
 }

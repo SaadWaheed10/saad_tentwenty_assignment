@@ -7,9 +7,10 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   // Top gap before the first card — matches Figma's 20px card top offset.
+  // Bottom padding is computed in the screen (needs safe-area insets) to
+  // clear the floating tab bar — see MovieListScreen.tsx.
   listContent: {
     paddingTop: 20,
-    paddingBottom: spacing.lg,
   },
   staleBanner: {
     backgroundColor: colors.white,
