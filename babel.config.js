@@ -25,7 +25,7 @@ module.exports = {
           '@hooks': './src/hooks',
           '@utils': './src/utils',
           '@theme': './src/theme',
-          '@types': './src/types',
+          '@app-types': './src/types',
           '@api': './src/api',
           '@store': './src/store',
         },

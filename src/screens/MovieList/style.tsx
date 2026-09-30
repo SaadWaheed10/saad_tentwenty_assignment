@@ -11,5 +11,21 @@ export const styles = StyleSheet.create({
     color: colors.text,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+  listContent: {
+    paddingBottom: spacing.lg,
+  },
+  staleBanner: {
+    backgroundColor: colors.surface,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    borderRadius: 8,
+    padding: spacing.sm,
+  },
+  staleBannerText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
   },
 });

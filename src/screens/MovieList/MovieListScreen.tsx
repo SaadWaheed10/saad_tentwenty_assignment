@@ -1,8 +1,10 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { EmptyState } from '@components/index';
+import { EmptyState, ErrorView, LoadingView, MovieListItem } from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
+import { useGetUpcomingMoviesInfiniteQuery } from '@store/api/moviesApi';
+import type { TmdbMovie } from '@app-types/tmdb';
 import { styles } from './style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
@@ -10,22 +12,125 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
 /**
  * Screen 01 — Movie list.
  *
- * Bootstrap stub only: proves navigation + providers work. The real
- * `GET /3/movie/upcoming` list (with offline cache, loading/empty/error
- * states, and pagination) is its own slice — see docs/planning/.
+ * `GET /3/movie/upcoming`, paginated via RTK Query's infinite-query support.
+ * The RTK Query cache is persisted (see src/store/store.ts), so on relaunch
+ * the last-seen page(s) render immediately — offline-first per
+ * .cursor/rules/03-offline-data.mdc — while a background refetch (RTK
+ * Query's refetchOnFocus/refetchOnReconnect, enabled via setupListeners)
+ * brings it up to date when back online.
  */
 function MovieListScreen({ navigation }: Props) {
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetUpcomingMoviesInfiniteQuery();
+
+  const movies = useMemo<TmdbMovie[]>(
+    () => data?.pages.flatMap(page => page.results) ?? [],
+    [data],
+  );
+
+  const handleOpenMovie = useCallback(
+    (movie: TmdbMovie) => {
+      navigation.navigate('MovieDetail', { movieId: movie.id });
+    },
+    [navigation],
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  // First load, nothing cached yet — full-screen loading state.
+  if (isLoading && movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Upcoming Movies</Text>
+        <LoadingView message="Loading upcoming movies…" />
+      </View>
+    );
+  }
+
+  // Failed and we have nothing cached to fall back to — full-screen error.
+  if (isError && movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Upcoming Movies</Text>
+        <ErrorView
+          description={describeError(error)}
+          onRetry={refetch}
+        />
+      </View>
+    );
+  }
+
+  // Succeeded but TMDb genuinely returned nothing.
+  if (movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Upcoming Movies</Text>
+        <EmptyState
+          title="No upcoming movies"
+          description="TMDb has nothing scheduled right now — check back soon."
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Upcoming Movies</Text>
-      <EmptyState
-        title="Movie list coming soon"
-        description="This screen will load upcoming movies from TMDb in the next slice."
-        actionLabel="Open a sample movie"
-        onAction={() => navigation.navigate('MovieDetail', { movieId: 0 })}
+      {isError ? (
+        <View style={styles.staleBanner}>
+          <Text style={styles.staleBannerText}>
+            Showing saved results — couldn't refresh. Pull down to retry.
+          </Text>
+        </View>
+      ) : null}
+      <FlatList
+        data={movies}
+        keyExtractor={item => String(item.id)}
+        renderItem={({ item }) => <MovieListItem movie={item} onPress={handleOpenMovie} />}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isFetchingNextPage}
+            onRefresh={() => {
+              refetch();
+            }}
+          />
+        }
+        onEndReachedThreshold={0.5}
+        onEndReached={handleEndReached}
+        ListFooterComponent={isFetchingNextPage ? <LoadingView /> : undefined}
+        removeClippedSubviews
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
       />
     </View>
   );
+}
+
+function describeError(error: unknown): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'status' in error &&
+    (error as { status?: number }).status === undefined
+  ) {
+    return 'No internet connection. Check your network and try again.';
+  }
+  return 'Could not load upcoming movies. Please try again.';
 }
 
 export default MovieListScreen;
