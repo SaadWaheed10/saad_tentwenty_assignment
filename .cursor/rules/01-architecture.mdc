@@ -5,17 +5,33 @@ alwaysApply: true
 
 # Architecture
 
-## Preferred stack (default unless human overrides)
+## Stack (human-confirmed override, 2026-09-30)
 
 - **Navigation:** React Navigation (native stack + any tabs if needed)
-- **Server state / caching:** TanStack Query (React Query) — offline-friendly, stale-while-revalidate, query keys
-- **Persistence for offline:** MMKV (preferred) or AsyncStorage for cached API responses and simple prefs
-- **Client UI state:** Zustand or React Context — keep it minimal; prefer server state in Query
+- **State management — client AND server state:** Redux Toolkit + RTK Query.
+  - Human explicitly overrode the original TanStack Query default in favour of
+    Redux Toolkit for state management, then confirmed RTK Query should also own
+    server data fetching/caching (one library instead of two state systems).
+  - RTK Query `createApi` base slice per API (TMDb), endpoints injected
+    per-feature-slice via `injectEndpoints()` — keep the base slice endpoint-free.
+  - `redux-persist` + MMKV storage engine persists the store (including the RTK
+    Query cache) across restarts for offline-first behaviour.
+  - `setupListeners(store.dispatch)` enables RTK Query's `refetchOnFocus` /
+    `refetchOnReconnect` for the "refetch when back online" requirement.
+- **Persistence for offline:** MMKV (via a redux-persist storage adapter).
+- **Client UI state:** Redux Toolkit slices (e.g. `uiSlice`) — not Context/Zustand.
 - **Lists:** FlashList if list performance becomes an issue; FlatList is acceptable for v1 if virtualized correctly
 - **Images:** A performant image component with caching (e.g. expo-image or react-native-fast-image depending on template)
 - **Trailer:** YouTube playback via official / well-supported RN approach (construct URL from TMDb `site` + `key`)
 
 Document the final choices in README and in `docs/planning/`.
+
+### Previously rejected, now overridden
+
+The original default rejected Redux as "too heavy for four screens" unless the
+human insisted. The human insisted (2026-09-30) — Redux Toolkit + RTK Query is
+now the actual stack. Leave this note so future agent sessions don't revert to
+the old default.
 
 ## Folder structure (suggested)
 
@@ -51,7 +67,6 @@ Adapt if you choose feature-first; stay consistent.
 
 ## What to reject by default
 
-- Redux for this scope (unless human insists) — too heavy for four screens
 - Untyped fetch wrappers
 - Global mutable caches without invalidation strategy
 - Navigation state used as data store
