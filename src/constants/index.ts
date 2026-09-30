@@ -1,8 +1,8 @@
 export const APP_NAME = 'task';
 
-export const API_BASE_URL = 'https://api.example.com';
+// TMDb base URL lives in src/api/axiosClient.ts, next to the client that
+// actually uses it, rather than duplicated here.
 
 export const STORAGE_KEYS = {
-  authToken: 'auth_token',
   userPreferences: 'user_preferences',
 } as const;

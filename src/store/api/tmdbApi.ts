@@ -1,7 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { TMDB_API_KEY } from '@env';
-
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery } from '@api/index';
 
 /**
  * Base RTK Query API slice for TMDb. Intentionally has NO endpoints — each
@@ -9,30 +7,12 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
  * `tmdbApi.injectEndpoints()`. Keeps this bootstrap slice small and every
  * future slice additive rather than a rewrite.
  *
- * Auth: TMDb accepts either an `api_key` query param or a bearer token.
- * We use the query param form here since `TMDB_API_KEY` is documented as a
- * v3 API key. Read from `.env` (via react-native-dotenv) — never hardcoded.
+ * HTTP calls go through axios (see src/api/axiosClient.ts) via a custom
+ * baseQuery — RTK Query still owns caching/tags/persistence, axios owns the
+ * actual request (interceptors, timeouts, api_key injection).
  */
 export const tmdbApi = createApi({
   reducerPath: 'tmdbApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: TMDB_BASE_URL,
-    prepareHeaders: headers => {
-      headers.set('Accept', 'application/json');
-      return headers;
-    },
-    paramsSerializer: (params: Record<string, unknown>) => {
-      const search = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          search.append(key, String(value));
-        }
-      });
-      if (TMDB_API_KEY) {
-        search.append('api_key', TMDB_API_KEY);
-      }
-      return search.toString();
-    },
-  }),
+  baseQuery: axiosBaseQuery(),
   endpoints: () => ({}),
 });
