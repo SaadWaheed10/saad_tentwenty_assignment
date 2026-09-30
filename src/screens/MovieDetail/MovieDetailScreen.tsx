@@ -5,18 +5,24 @@ import { Button } from '@components/index';
 import { colors, spacing, typography } from '@theme/index';
 import type { RootStackParamList } from '@navigation/types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'MovieDetail'>;
 
-function HomeScreen({ navigation }: Props) {
+/**
+ * Screen 02 — Movie detail.
+ *
+ * Bootstrap stub only. The real detail + full-screen autoplay trailer flow
+ * (GET /3/movie/{id}, /videos, /images) is its own slice.
+ */
+function MovieDetailScreen({ route, navigation }: Props) {
+  const { movieId } = route.params;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Home Screen</Text>
-      <Text style={styles.subtitle}>
-        Edit src/screens/HomeScreen/HomeScreen.tsx to get started.
-      </Text>
+      <Text style={styles.title}>Movie Detail</Text>
+      <Text style={styles.subtitle}>movieId: {movieId}</Text>
       <Button
-        title="Go to Details"
-        onPress={() => navigation.navigate('Details', { id: '42' })}
+        title="Select seats"
+        onPress={() => navigation.navigate('SeatMapping', { movieId })}
       />
     </View>
   );
@@ -38,9 +44,8 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.body,
     color: colors.textMuted,
-    textAlign: 'center',
     marginBottom: spacing.lg,
   },
 });
 
-export default HomeScreen;
+export default MovieDetailScreen;

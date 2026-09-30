@@ -1,20 +1,24 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Button } from '@components/index';
 import { colors, spacing, typography } from '@theme/index';
 import type { RootStackParamList } from '@navigation/types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Details'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'SeatMapping'>;
 
-function DetailsScreen({ route, navigation }: Props) {
-  const id = route.params?.id;
+/**
+ * Screen 04 — Seat mapping. UI ONLY — no booking, persistence, or payment.
+ *
+ * Bootstrap stub only. The real seat grid (available/selected/unavailable
+ * states, portrait + landscape) is its own slice.
+ */
+function SeatMappingScreen({ route }: Props) {
+  const { movieId } = route.params;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Details Screen</Text>
-      {id ? <Text style={styles.subtitle}>Item id: {id}</Text> : null}
-      <Button title="Go Back" variant="secondary" onPress={() => navigation.goBack()} />
+      <Text style={styles.title}>Seat Mapping</Text>
+      <Text style={styles.subtitle}>movieId: {movieId} · UI only, no booking logic</Text>
     </View>
   );
 }
@@ -35,8 +39,8 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.body,
     color: colors.textMuted,
-    marginBottom: spacing.lg,
+    textAlign: 'center',
   },
 });
 
-export default DetailsScreen;
+export default SeatMappingScreen;

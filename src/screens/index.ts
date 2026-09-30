@@ -1,2 +1,4 @@
-export { default as HomeScreen } from './HomeScreen';
-export { default as DetailsScreen } from './DetailsScreen';
+export { default as MovieListScreen } from './MovieList';
+export { default as MovieDetailScreen } from './MovieDetail';
+export { default as MovieSearchScreen } from './MovieSearch';
+export { default as SeatMappingScreen } from './SeatMapping';

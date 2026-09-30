@@ -1,6 +1,8 @@
 export type RootStackParamList = {
-  Home: undefined;
-  Details: { id?: string } | undefined;
+  MovieList: undefined;
+  MovieDetail: { movieId: number };
+  MovieSearch: undefined;
+  SeatMapping: { movieId: number };
 };
 
 declare global {
