@@ -1,0 +1,52 @@
+---
+description: React Native + TypeScript coding standards, components, styling, and platform constraints.
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# React Native + TypeScript
+
+## TypeScript
+
+- `strict` mode on. No `any`. Prefer `unknown` + narrowing when needed.
+- Explicit props interfaces for components (`MovieCardProps`, etc.).
+- Type API responses; do not trust TMDb JSON blindly at use-site.
+- Prefer `type` for unions/intersections; `interface` for object shapes that may extend — either is fine if consistent.
+- Avoid non-null assertions (`!`) unless justified with a comment.
+
+## Components
+
+- Functional components only.
+- Named exports preferred for screens and shared components.
+- Keep screens thin: data via hooks, UI via presentational components.
+- Every interactive element needs an accessibility label where it helps.
+- Support **portrait and landscape** — use Flexbox, avoid hard-coded heights that break rotation.
+- Respect safe area (notches, home indicator).
+
+## Styling
+
+- Consistent spacing scale (e.g. 4 / 8 / 12 / 16 / 24 / 32).
+- Theme tokens for colors, radius, typography — no random hex in every file.
+- Lists must feel smooth: correct `keyExtractor`, avoid anonymous heavy inline work in `renderItem`.
+- Images: show placeholder / skeleton while loading; handle missing posters gracefully.
+
+## Platform / build
+
+- New Architecture only.
+- Android target API 36.
+- iOS 15+ minimum.
+- No legacy bridge patterns.
+- Do not add native modules unless required for trailer or offline storage and the human agrees.
+
+## Performance defaults
+
+- Memoize list items when props are stable and lists grow.
+- Paginate upcoming/search if the API supports pages — do not load unbounded lists into memory without a plan.
+- Cancel or ignore in-flight work on unmount / query change (especially search).
+
+## File hygiene
+
+- One main component per screen file; colocated styles or theme-driven styles.
+- Colocate small pure helpers next to usage; shared utils in `src/utils`.
+- No dead code, no commented-out blocks left behind after a slice.

@@ -1,0 +1,71 @@
+---
+description: Non-negotiable TenTwenty assignment constraints. Always enforce on every task.
+alwaysApply: true
+---
+
+# TenTwenty Assignment — Core Rules
+
+You are helping build a React Native + TypeScript app for the TenTwenty take-home assignment.
+The human steers. You implement one focused slice at a time. Do not take the whole brief in one go.
+
+## Hard constraints (never violate)
+
+- **TypeScript only.** No `.js` / `.jsx` source files in the app.
+- **React Native New Architecture only.** No legacy bridge workarounds.
+- **Functional components + hooks only.** Fully typed props, state, and hooks.
+- **Targets:** Android API 36, iOS 15+, portrait **and** landscape.
+- **Never commit TMDb API keys.** Read from env / local config / build args. Document which in README.
+- **Seat mapping (Screen 04) is UI-only.** No booking logic, no persistence, no payment, no network calls for seats.
+
+## How we work (mandatory process)
+
+1. **Feature-by-feature.** Plan one slice → implement → verify states → commit → next.
+2. Never scaffold multiple screens or major systems in a single response unless the human explicitly asks.
+3. After each meaningful slice, propose a clear conventional commit message.
+4. Prefer small, reviewable diffs over large rewrites.
+5. When architecture is ambiguous, ask before inventing a new pattern.
+6. Leave planning notes in `docs/planning/` unedited. If a plan changes, keep both versions.
+
+## Quality bar (every screen)
+
+- **Offline-first** with an explicit cache + refetch strategy.
+- **Designed states:** loading, empty, error — nothing blank or broken without reason.
+- **Pixel-precise UI:** consistent spacing, alignment, responsive across orientations and sizes.
+- **Tests that mean something:** express real behaviour (search freshness, offline fallback, list behaviour), not coverage chasing.
+
+## Screen contracts (summary)
+
+| Screen | Must do |
+|--------|---------|
+| 01 Movie list | Upcoming movies. Feels instant. Holds up as list grows. `GET /3/movie/upcoming` |
+| 02 Movie detail | Detail + trailer. Trailer full-screen, auto-starts, returns to detail on end, user can exit early. No dead states. `GET /3/movie/{id}` · `/videos` · `/images` |
+| 03 Movie search | Immediate feel. Results **always** match current query — never a query the user has moved past. `GET /3/search/movie` |
+| 04 Seat mapping | UI only. Layout, selection states, visual precision. |
+
+## Search freshness (critical)
+
+Results shown must always match what the user is **currently** looking for.
+Handle race conditions / stale responses (abort, ignore outdated responses, or equivalent). Never flash results for a previous query.
+
+## Trailer behaviour (critical)
+
+- Plays full-screen
+- Starts automatically
+- When it ends → return to detail without user action
+- User can leave early at any point
+- No dead / stuck states
+
+## Do not
+
+- Hand the entire assignment to yourself and generate the whole app in one pass
+- Invent booking, payment, or seat persistence
+- Use `any` to silence TypeScript
+- Commit secrets
+- Hide AI usage — rules, planning notes, and agent setup stay in the repo
+
+## TMDb
+
+- Base URL: `https://api.themoviedb.org/3`
+- Auth: `api_key` query param or bearer token
+- Image CDN: `https://image.tmdb.org/t/p/{size}/{file_path}`
+- Videos return `site` + `key` (usually YouTube) — construct playback URL yourself

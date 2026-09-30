@@ -1,0 +1,81 @@
+---
+description: Screen-by-screen UX behaviour, states, trailer flow, search freshness, and seat map UI rules.
+alwaysApply: false
+---
+
+# Screens & UX
+
+## Shared UI states (every screen)
+
+Implement explicit components or patterns for:
+
+- **Loading** — skeleton or focused spinner; prefer skeleton for lists/detail
+- **Empty** — clear message, optional action
+- **Error** — message + retry
+- **Content** — the happy path
+
+No blank screens. No infinite spinners without feedback.
+
+---
+
+## Screen 01 — Movie list
+
+- Entry point: upcoming movies from `GET /3/movie/upcoming`
+- Must feel **instant** (show cache immediately if available)
+- Must hold up as the list grows (virtualization, stable keys, efficient rows)
+- Poster + title (+ optional meta: date, rating) — keep rows scannable
+- Tap → Movie detail
+- Pull-to-refresh when online
+- Offline: show last cached list + subtle indicator if stale
+
+---
+
+## Screen 02 — Movie detail
+
+- Data: `GET /3/movie/{id}`, `/videos`, `/images`
+- Show core movie info (title, overview, runtime, genres, backdrop/poster as design allows)
+- **Trailer:**
+  - Available when TMDb returns a playable video (usually YouTube `key`)
+  - Opens **full-screen**
+  - **Starts automatically**
+  - On natural end → **return to detail** without extra user action
+  - User can **exit early** at any time → back to detail
+  - No dead states (loading player, missing trailer, playback error all handled)
+- Construct playback from `site` + `key` (do not expect a ready-made stream URL from TMDb)
+
+---
+
+## Screen 03 — Movie search
+
+- `GET /3/search/movie`
+- Must feel **immediate** (debounce input carefully — balance snappiness vs API spam)
+- **Freshness rule (non-negotiable):** results on screen must match the **current** query only
+  - Ignore or abort responses for older queries
+  - Never briefly show results for a query the user has already changed
+- Distinguish: idle / typing / loading / no results / error
+- Tap result → detail (same detail screen)
+
+---
+
+## Screen 04 — Seat mapping (UI only)
+
+- **No** booking API, **no** persistence, **no** payment, **no** confirmation backend
+- Judge: layout, selection states, visual precision, responsiveness
+- Typical expectations:
+  - Screen / stage indicator
+  - Grid or rows of seats
+  - States: available, selected, unavailable (and maybe others if designed)
+  - Tap to toggle selection where allowed
+  - Summary of selected seats (count / labels) is fine as pure UI
+  - Works in portrait and landscape without breaking alignment
+- Fake static seat map data is acceptable and expected
+
+---
+
+## Visual quality
+
+- Consistent padding and gaps from theme
+- Align columns and seat cells deliberately — no “almost” grids
+- Typography hierarchy: title vs body vs meta
+- Touch targets large enough for mobile
+- Landscape: reflow; do not clip primary actions

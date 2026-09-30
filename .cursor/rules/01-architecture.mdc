@@ -1,0 +1,69 @@
+---
+description: App architecture, folder structure, navigation, and state/data layer decisions for the TenTwenty RN app.
+alwaysApply: true
+---
+
+# Architecture
+
+## Preferred stack (default unless human overrides)
+
+- **Navigation:** React Navigation (native stack + any tabs if needed)
+- **Server state / caching:** TanStack Query (React Query) — offline-friendly, stale-while-revalidate, query keys
+- **Persistence for offline:** MMKV (preferred) or AsyncStorage for cached API responses and simple prefs
+- **Client UI state:** Zustand or React Context — keep it minimal; prefer server state in Query
+- **Lists:** FlashList if list performance becomes an issue; FlatList is acceptable for v1 if virtualized correctly
+- **Images:** A performant image component with caching (e.g. expo-image or react-native-fast-image depending on template)
+- **Trailer:** YouTube playback via official / well-supported RN approach (construct URL from TMDb `site` + `key`)
+
+Document the final choices in README and in `docs/planning/`.
+
+## Folder structure (suggested)
+
+```text
+src/
+  app/                 # navigation, providers, entry
+  screens/             # one folder per screen
+    MovieList/
+    MovieDetail/
+    MovieSearch/
+    SeatMapping/
+  components/          # shared UI (Button, EmptyState, ErrorView, Skeleton, etc.)
+  features/            # optional feature modules if you prefer feature-first
+  api/                 # TMDb client, endpoints, types
+  hooks/               # shared hooks
+  store/               # client state if any
+  storage/             # MMKV / cache helpers
+  theme/               # colors, spacing, typography
+  types/               # shared TS types
+  utils/
+  test/                # test utils, mocks
+```
+
+Adapt if you choose feature-first; stay consistent.
+
+## Clean architecture expectations
+
+- Screens orchestrate; they do not own raw `fetch` calls
+- API layer is typed (request/response types from TMDb)
+- Query keys are stable and hierarchical (e.g. `['movies', 'upcoming', page]`, `['movies', id]`, `['search', query]`)
+- No god components: extract list item, poster, state views
+- Env/config isolated — API key never hardcoded
+
+## What to reject by default
+
+- Redux for this scope (unless human insists) — too heavy for four screens
+- Untyped fetch wrappers
+- Global mutable caches without invalidation strategy
+- Navigation state used as data store
+- Putting booking/payment logic anywhere
+
+## Incremental delivery order (default)
+
+1. Project bootstrap + theme + providers + navigation shell
+2. Screen 01 — upcoming list (API + offline cache + states)
+3. Screen 02 — detail + images + trailer flow
+4. Screen 03 — search with freshness guarantee
+5. Screen 04 — seat map UI only
+6. Polish, tests, README, builds
+
+Do not jump ahead without human direction.

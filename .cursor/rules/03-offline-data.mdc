@@ -1,0 +1,59 @@
+---
+description: Offline-first data layer, TMDb API client, caching, and refetch strategy.
+alwaysApply: false
+---
+
+# Offline-first & Data Layer
+
+## Goals
+
+- App remains usable without network for data already seen.
+- Fresh data when online, with a clear refetch strategy.
+- Loading / empty / error states are first-class, not afterthoughts.
+
+## Recommended approach
+
+- **TanStack Query** for server state:
+  - `staleTime` / `gcTime` tuned per resource (upcoming list vs detail vs search)
+  - `networkMode` / offline behaviour configured deliberately
+  - Persist query cache (e.g. MMKV persister) so relaunch still has data
+- **TMDb client** in `src/api`:
+  - Single place for base URL, auth header/query, error mapping
+  - Typed functions: `getUpcoming`, `getMovie`, `getVideos`, `getImages`, `searchMovies`
+- **API key** from environment / config only — never in source control
+
+## Caching strategy (document in planning notes)
+
+| Resource | Cache intent |
+|----------|----------------|
+| Upcoming list | Persist last successful page(s). Show cached immediately; revalidate in background when online |
+| Movie detail | Cache by `movieId`. Stale-while-revalidate |
+| Videos / images | Cache with detail or separate keys; trailer needs video key available offline only if previously fetched |
+| Search | Prefer **no long-lived wrong cache** of old queries; short `staleTime`; always key by current query string |
+
+Search freshness beats aggressive search caching. Do not show results for query A when the input is already B.
+
+## Refetch
+
+- Pull-to-refresh on list/detail where it makes sense
+- Reconnect: refetch active queries when network returns
+- Manual retry on error views
+
+## Error handling
+
+- Map network failures, 401/404, and unknown errors to user-facing messages
+- Error UI always offers retry when appropriate
+- Never leave a white screen on failure
+
+## Empty states
+
+- Upcoming: empty API response → intentional empty UI, not a spinner forever
+- Search: empty query vs no results — different copy
+- Offline + no cache: explain that content will appear when online
+
+## What not to do
+
+- Fire-and-forget `fetch` inside components without cache layer
+- Infinite retries that drain battery
+- Treat search like a permanent catalog cache
+- Store API key in AsyncStorage as a substitute for env config

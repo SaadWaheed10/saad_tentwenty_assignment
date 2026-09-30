@@ -1,0 +1,47 @@
+---
+description: Testing standards — behaviour-focused tests for the TenTwenty app.
+globs:
+  - "**/*.{test,spec}.{ts,tsx}"
+  - "**/__tests__/**"
+alwaysApply: false
+---
+
+# Testing
+
+## Philosophy
+
+Tests must express **real behaviour**, not chase coverage numbers.
+Prefer fewer meaningful tests over many brittle ones.
+
+## What to test (priority)
+
+1. **Search freshness** — changing the query must not leave stale results from a previous request visible
+2. **Offline / cache behaviour** — with cached data and no network, list/detail still render useful content
+3. **State UI** — loading → success, loading → error, empty list, empty search
+4. **List behaviour** — renders items from fixtures; key stability if relevant
+5. **Trailer-related logic** — pure helpers (pick best video, build YouTube URL) unit-tested
+6. **Seat map UI** — selection toggles, disabled seats cannot be selected (component tests)
+
+## What not to prioritise
+
+- Pixel-perfect screenshot tests unless already set up
+- Testing implementation details of React Query internals
+- Snapshot spam of entire screens
+- 100% line coverage as a goal
+
+## Tooling (default)
+
+- Jest + React Native Testing Library
+- MSW or simple mocked API module for network
+- Deterministic fixtures under `src/test/fixtures` or similar
+
+## Style
+
+- Arrange / Act / Assert (or clear Given / When / Then comments)
+- Test names describe behaviour: `shows cached upcoming movies when offline`
+- Keep tests close to the unit under test or under `__tests__` consistently
+
+## When implementing a feature
+
+- Write or update the behaviour test in the same slice as the feature when practical (TDD preferred)
+- Do not merge a slice that claims offline or search-freshness without a test that would fail if broken
