@@ -47,6 +47,10 @@ alwaysApply: false
 
 ## File hygiene
 
-- One main component per screen file; colocated styles or theme-driven styles.
+- One main component per screen file.
+- **Styles for each screen live in a sibling `style.tsx` file** (human-confirmed
+  convention, 2026-09-30), not inline in the screen component file. Export a
+  single `styles` object via `StyleSheet.create` and import it: e.g.
+  `src/screens/MovieList/MovieListScreen.tsx` + `src/screens/MovieList/style.tsx`.
 - Colocate small pure helpers next to usage; shared utils in `src/utils`.
 - No dead code, no commented-out blocks left behind after a slice.

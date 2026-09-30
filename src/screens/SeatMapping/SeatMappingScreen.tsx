@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { colors, spacing, typography } from '@theme/index';
 import type { RootStackParamList } from '@navigation/types';
+import { styles } from './style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeatMapping'>;
 
@@ -22,25 +22,5 @@ function SeatMappingScreen({ route }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-  },
-  title: {
-    ...typography.h1,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-});
 
 export default SeatMappingScreen;

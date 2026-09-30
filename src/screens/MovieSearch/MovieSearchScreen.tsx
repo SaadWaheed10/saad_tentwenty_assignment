@@ -1,9 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { EmptyState } from '@components/index';
-import { colors, spacing, typography } from '@theme/index';
 import type { RootStackParamList } from '@navigation/types';
+import { styles } from './style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MovieSearch'>;
 
@@ -26,18 +26,5 @@ function MovieSearchScreen({ navigation }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  title: {
-    ...typography.h1,
-    color: colors.text,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-});
 
 export default MovieSearchScreen;
