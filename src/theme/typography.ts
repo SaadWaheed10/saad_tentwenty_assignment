@@ -21,6 +21,9 @@ export const typography = {
   body: { fontFamily: fontFamily.regular, fontSize: 14, fontWeight: '400' as const },
   caption: { fontFamily: fontFamily.regular, fontSize: 12, fontWeight: '400' as const },
   label: { fontFamily: fontFamily.medium, fontSize: 12, fontWeight: '500' as const },
+  // Poppins Medium 18 — the movie-title-over-poster style seen on the
+  // "Watch" frame (Figma node 42:13911). Distinct from h2 (SemiBold 18).
+  cardTitle: { fontFamily: fontFamily.medium, fontSize: 18, fontWeight: '500' as const },
 } as const;
 
 export { fontFamily };

@@ -4,22 +4,17 @@ import { colors, spacing, typography } from '@theme/index';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
   },
-  title: {
-    ...typography.h1,
-    color: colors.text,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
+  // Top gap before the first card — matches Figma's 20px card top offset.
   listContent: {
+    paddingTop: 20,
     paddingBottom: spacing.lg,
   },
   staleBanner: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
     borderRadius: 8,
     padding: spacing.sm,
   },

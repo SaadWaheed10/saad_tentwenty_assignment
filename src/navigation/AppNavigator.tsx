@@ -5,7 +5,7 @@ import MovieListScreen from '@screens/MovieList';
 import MovieDetailScreen from '@screens/MovieDetail';
 import MovieSearchScreen from '@screens/MovieSearch';
 import SeatMappingScreen from '@screens/SeatMapping';
-import { colors } from '@theme/index';
+import { colors, typography } from '@theme/index';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -18,6 +18,10 @@ function AppNavigator() {
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.text,
+          // Matches the Figma header treatment (frame 42:13911, "Watch"):
+          // left-aligned, Poppins Medium 16 — not a bold centered title.
+          headerTitleAlign: 'left',
+          headerTitleStyle: { ...typography.h3, color: colors.text },
         }}>
         <Stack.Screen
           name="MovieList"

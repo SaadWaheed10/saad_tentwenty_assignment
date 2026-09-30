@@ -2,7 +2,6 @@ import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { getTmdbImageUrl } from '@api/tmdbImage';
 import type { TmdbMovie } from '@app-types/tmdb';
-import { formatReleaseDate } from '@utils/date';
 import { styles } from './style';
 
 export type MovieListItemProps = {
@@ -11,36 +10,33 @@ export type MovieListItemProps = {
 };
 
 /**
- * Single row in the upcoming-movies list: poster + title + release date +
- * rating. Kept dumb (no data fetching) so it's reusable from search results
- * later — see .cursor/rules/04-screens-ux.mdc ("keep rows scannable").
+ * Full-width landscape card with the title overlaid at the bottom — matches
+ * the Figma "Watch" screen (fileKey 4e1pQ2l0VkLNgnaV7xNlFW, frame 42:13911):
+ * 335×180 card, 10px radius, 20px screen margin, title in white Poppins
+ * Medium 18 inset ~20px from the left/bottom.
+ *
+ * Uses `backdrop_path` (landscape) rather than `poster_path` (portrait) —
+ * the card's 335:180 aspect ratio is a landscape shape, not a poster shape.
+ *
+ * NOTE: Figma renders a true black→transparent linear gradient behind the
+ * title. We approximate it with a flat semi-transparent scrim
+ * (`colors.overlayDark`) instead of adding a native gradient dependency —
+ * an inferred simplification, not a measured match (see AGENTS.md).
  */
 function MovieListItem({ movie, onPress }: MovieListItemProps) {
-  const posterUrl = getTmdbImageUrl(movie.poster_path, 'w185');
+  const backdropUrl = getTmdbImageUrl(movie.backdrop_path ?? movie.poster_path, 'w500');
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      activeOpacity={0.7}
-      onPress={() => onPress(movie)}>
-      {posterUrl ? (
-        <Image source={{ uri: posterUrl }} style={styles.poster} resizeMode="cover" />
+    <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={() => onPress(movie)}>
+      {backdropUrl ? (
+        <Image source={{ uri: backdropUrl }} style={styles.image} resizeMode="cover" />
       ) : (
-        <View style={[styles.poster, styles.posterPlaceholder]}>
-          <Text style={styles.posterPlaceholderText}>No image</Text>
-        </View>
+        <View style={[styles.image, styles.imagePlaceholder]} />
       )}
-      <View style={styles.details}>
+      <View style={styles.scrim}>
         <Text style={styles.title} numberOfLines={2}>
           {movie.title}
         </Text>
-        <Text style={styles.meta}>{formatReleaseDate(movie.release_date)}</Text>
-        {movie.vote_average > 0 ? (
-          <View style={styles.ratingRow}>
-            <Text style={styles.ratingStar}>★</Text>
-            <Text style={styles.ratingValue}>{movie.vote_average.toFixed(1)}</Text>
-          </View>
-        ) : null}
       </View>
     </TouchableOpacity>
   );

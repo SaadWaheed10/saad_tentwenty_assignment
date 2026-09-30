@@ -10,7 +10,7 @@ import { styles } from './style';
 type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
 
 /**
- * Screen 01 — Movie list.
+ * Screen 01 — Movie list ("Watch" in Figma, frame 42:13911).
  *
  * `GET /3/movie/upcoming`, paginated via RTK Query's infinite-query support.
  * The RTK Query cache is persisted (see src/store/store.ts), so on relaunch
@@ -18,6 +18,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
  * .cursor/rules/03-offline-data.mdc — while a background refetch (RTK
  * Query's refetchOnFocus/refetchOnReconnect, enabled via setupListeners)
  * brings it up to date when back online.
+ *
+ * The screen title lives in the native stack header (see AppNavigator),
+ * matching Figma's single left-aligned header — no duplicate in-body title.
  */
 function MovieListScreen({ navigation }: Props) {
   const {
@@ -54,7 +57,6 @@ function MovieListScreen({ navigation }: Props) {
   if (isLoading && movies.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Upcoming Movies</Text>
         <LoadingView message="Loading upcoming movies…" />
       </View>
     );
@@ -64,11 +66,7 @@ function MovieListScreen({ navigation }: Props) {
   if (isError && movies.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Upcoming Movies</Text>
-        <ErrorView
-          description={describeError(error)}
-          onRetry={refetch}
-        />
+        <ErrorView description={describeError(error)} onRetry={refetch} />
       </View>
     );
   }
@@ -77,7 +75,6 @@ function MovieListScreen({ navigation }: Props) {
   if (movies.length === 0) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Upcoming Movies</Text>
         <EmptyState
           title="No upcoming movies"
           description="TMDb has nothing scheduled right now — check back soon."
@@ -88,7 +85,6 @@ function MovieListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Upcoming Movies</Text>
       {isError ? (
         <View style={styles.staleBanner}>
           <Text style={styles.staleBannerText}>
