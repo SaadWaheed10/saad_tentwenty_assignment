@@ -1,10 +1,15 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Image, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ErrorView, LoadingView } from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
 import { getTmdbImageUrl } from '@api/index';
-import { useGetMovieDetailQuery, useGetMovieVideosQuery } from '@store/index';
+import {
+  useGetMovieDetailQuery,
+  useGetMovieImagesQuery,
+  useGetMovieVideosQuery,
+} from '@store/index';
+import { pickBestBackdropPath } from '@utils/backdrop';
 import { pickBestTrailer } from '@utils/trailer';
 import { colors } from '@theme/index';
 import type { TmdbGenre } from '@app-types/tmdb';
@@ -22,21 +27,26 @@ const GENRE_CHIP_COLORS = [
 /**
  * Screen 02 — Movie detail (Figma frame 42:756).
  *
- * `GET /movie/{id}` + `/videos` (see store/api/moviesApi.ts), both cached
- * per movie id for offline-first revisits. "Get Tickets" leads to the
- * (UI-only) seat map — the only ticketing-adjacent flow this assignment
- * actually scopes; no real booking/purchase logic exists anywhere here.
+ * `GET /movie/{id}` + `/videos` + `/images`, all cached per movie id for
+ * offline-first revisits. "Get Tickets" leads to the (UI-only) seat map —
+ * no real booking/purchase logic exists anywhere here.
  */
 function MovieDetailScreen({ route, navigation }: Props) {
   const { movieId } = route.params;
 
   const detailQuery = useGetMovieDetailQuery(movieId);
   const videosQuery = useGetMovieVideosQuery(movieId);
+  const imagesQuery = useGetMovieImagesQuery(movieId);
 
   const trailer = useMemo(
     () => pickBestTrailer(videosQuery.data?.results),
     [videosQuery.data],
   );
+
+  const backdropPath = useMemo(() => {
+    const fromImages = pickBestBackdropPath(imagesQuery.data?.backdrops);
+    return fromImages ?? detailQuery.data?.backdrop_path ?? null;
+  }, [imagesQuery.data, detailQuery.data]);
 
   const handleWatchTrailer = useCallback(() => {
     if (trailer) {
@@ -48,8 +58,17 @@ function MovieDetailScreen({ route, navigation }: Props) {
     navigation.navigate('SeatMapping', { movieId });
   }, [navigation, movieId]);
 
+  const handleRefresh = useCallback(() => {
+    detailQuery.refetch();
+    videosQuery.refetch();
+    imagesQuery.refetch();
+  }, [detailQuery, videosQuery, imagesQuery]);
+
   const isLoading = detailQuery.isLoading && !detailQuery.data;
   const isError = detailQuery.isError && !detailQuery.data;
+  const isRefreshing =
+    (detailQuery.isFetching || videosQuery.isFetching || imagesQuery.isFetching) &&
+    Boolean(detailQuery.data);
 
   if (isLoading) {
     return (
@@ -71,11 +90,14 @@ function MovieDetailScreen({ route, navigation }: Props) {
   }
 
   const movie = detailQuery.data;
-  const backdropUrl = getTmdbImageUrl(movie.backdrop_path, 'w780');
+  const backdropUrl = getTmdbImageUrl(backdropPath, 'w780');
   const releaseLabel = formatReleaseLabel(movie.release_date);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}>
       <View style={styles.backdropWrap}>
         {backdropUrl ? (
           <Image source={{ uri: backdropUrl }} style={styles.backdrop} resizeMode="cover" />

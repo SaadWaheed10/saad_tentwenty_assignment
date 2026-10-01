@@ -1,5 +1,6 @@
 import type {
   TmdbGenresResponse,
+  TmdbImagesResponse,
   TmdbMovieDetail,
   TmdbSearchMoviesResponse,
   TmdbUpcomingMoviesResponse,
@@ -63,6 +64,15 @@ export const moviesApi = tmdbApi.injectEndpoints({
     }),
 
     /**
+     * `GET /movie/{id}/images` — Screen 02 contract. Used as a fallback
+     * backdrop source when `movie.backdrop_path` is null, and preferred
+     * when TMDb returns a higher-voted landscape backdrop.
+     */
+    getMovieImages: builder.query<TmdbImagesResponse, number>({
+      query: id => ({ url: `/movie/${id}/images` }),
+    }),
+
+    /**
      * `GET /search/movie` — Screen 03. Keyed by the raw query string, so
      * each distinct search term gets its own RTK Query cache entry. This
      * is what actually guarantees "results always match the current
@@ -92,6 +102,7 @@ export const {
   useGetUpcomingMoviesInfiniteQuery,
   useGetMovieDetailQuery,
   useGetMovieVideosQuery,
+  useGetMovieImagesQuery,
   useSearchMoviesQuery,
   useGetGenresQuery,
 } = moviesApi;

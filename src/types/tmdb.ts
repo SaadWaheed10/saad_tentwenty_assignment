@@ -61,3 +61,20 @@ export type TmdbVideosResponse = {
   id: number;
   results: TmdbVideo[];
 };
+
+/** One image entry from `GET /movie/{id}/images` (posters or backdrops). */
+export type TmdbImage = {
+  file_path: string;
+  width: number;
+  height: number;
+  aspect_ratio: number;
+  vote_average: number;
+  vote_count: number;
+  iso_639_1: string | null;
+};
+
+export type TmdbImagesResponse = {
+  id: number;
+  backdrops: TmdbImage[];
+  posters: TmdbImage[];
+};

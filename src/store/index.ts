@@ -8,5 +8,8 @@ export {
   useGetUpcomingMoviesInfiniteQuery,
   useGetMovieDetailQuery,
   useGetMovieVideosQuery,
+  useGetMovieImagesQuery,
+  useSearchMoviesQuery,
+  useGetGenresQuery,
 } from './api/moviesApi';
 export { setIsDarkMode } from './slices/uiSlice';

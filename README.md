@@ -1,97 +1,141 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# TenTwenty — Movie App (Take-home)
 
-# Getting Started
+React Native + TypeScript app for the TenTwenty assignment: upcoming movies from TMDb → detail (with trailer) → search → seat map (UI only).
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Built feature-by-feature with Cursor agents. Rules live in [`.cursor/rules/`](.cursor/rules/); planning notes in [`docs/planning/`](docs/planning/). See [`AGENTS.md`](AGENTS.md) for the agent brief.
 
-## Step 1: Start Metro
+## Screens
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+| # | Screen | API | Notes |
+|---|--------|-----|--------|
+| 01 | Movie list (Watch tab) | `GET /3/movie/upcoming` | Infinite scroll, pull-to-refresh, offline cache |
+| 02 | Movie detail | `GET /3/movie/{id}`, `/videos`, `/images` | Full-screen trailer; Get Tickets → seat map |
+| 03 | Movie search | `GET /3/search/movie` (+ genres list) | Debounced; results always match current query |
+| 04 | Seat mapping | none | **UI only** — no booking, persistence, or payment |
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Stack
+
+| Concern | Choice |
+|---------|--------|
+| React Native | 0.87, **New Architecture only** |
+| Language | TypeScript (strict) |
+| Navigation | React Navigation — bottom tabs + native stack |
+| Client + server state | **Redux Toolkit + RTK Query** |
+| Offline cache | `redux-persist` + `@react-native-async-storage/async-storage` |
+| HTTP | Axios (custom RTK Query `baseQuery`) |
+| Trailer | `react-native-youtube-iframe` (wraps `react-native-webview`) |
+| Lists | `FlatList` (virtualized) |
+| Images | RN `Image` + TMDb CDN URLs |
+
+Final stack overrides (Redux over TanStack Query; AsyncStorage over MMKV) are documented in [`.cursor/rules/01-architecture.mdc`](.cursor/rules/01-architecture.mdc) and [`docs/planning/01-bootstrap-and-navigation.md`](docs/planning/01-bootstrap-and-navigation.md).
+
+## Targets
+
+- Android: `targetSdkVersion` / compile **36** (`minSdk` 24)
+- iOS: **15.1+**
+- Portrait **and** landscape (Flexbox layouts; seat grid resizes by width)
+
+## Setup
+
+### 1. Install
 
 ```sh
-# Using npm
+npm install
+# iOS only (first time / after native dep changes):
+bundle install && bundle exec pod install
+```
+
+### 2. TMDb API key (required)
+
+Copy the example env and add your own key from [TMDb API settings](https://www.themoviedb.org/settings/api):
+
+```sh
+cp .env.example .env
+```
+
+`.env` (gitignored — **never commit**):
+
+```env
+TMDB_API_KEY=your_tmdb_v3_api_key_here
+TMDB_BASE_URL=https://api.themoviedb.org/3
+TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
+```
+
+Keys are injected at build time via `react-native-dotenv` (`@env`). Do not put secrets in source or AsyncStorage.
+
+### 3. Run
+
+```sh
+# Metro
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# Android (device/emulator)
 npm run android
 
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
+# iOS
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Physical Android USB device: `adb reverse tcp:8081 tcp:8081` if Metro is on the host.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Offline-first
 
-## Step 3: Modify your app
+- RTK Query cache is **persisted** across restarts (`redux-persist` + AsyncStorage).
+- `setupListeners` enables **refetchOnFocus** / **refetchOnReconnect**.
+- Upcoming list / detail / videos / images: show cached data immediately when available; revalidate when online.
+- Search is keyed by the **current query string** so stale responses for older queries never overwrite the UI (freshness > long-lived search cache).
+- List shows a compact banner when showing saved results after a failed refresh.
 
-Now that you have successfully run the app, let's make changes!
+Details: [`.cursor/rules/03-offline-data.mdc`](.cursor/rules/03-offline-data.mdc) and the per-screen planning notes under `docs/planning/`.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## Trailer behaviour
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+- Full-screen modal; attempts autoplay; closes on video `ended` or user close / system back.
+- **Known platform limit:** ad-monetized YouTube trailers often require one real tap before play (Google autoplay/ad policy). Documented in `TrailerPlayerScreen`. Non-monetized videos can autoplay.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## Seat mapping
 
-## Congratulations! :tada:
+UI-only static grid (VIP / Regular / unavailable / selected). Selection is local React state — discarded on leave. **No** booking API, payment, or persistence.
 
-You've successfully run and modified your React Native App. :partying_face:
+## Project layout
 
-### Now what?
+```text
+src/
+  api/           # axios client, baseQuery, image URL helper
+  components/    # shared UI + tab/header chrome
+  hooks/
+  navigation/    # AppNavigator, param lists
+  screens/       # MovieList, MovieDetail, MovieSearch, SeatMapping, TrailerPlayer
+  store/         # Redux store, RTK Query APIs, uiSlice
+  theme/
+  types/
+  utils/
+docs/planning/   # slice plans (leave prior versions unedited)
+.cursor/rules/   # agent / assignment rules
+```
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Each screen keeps styles in a sibling `style.tsx`.
 
-# Troubleshooting
+## Scripts
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+```sh
+npm start          # Metro
+npm run android
+npm run ios
+npm run lint
+npx tsc --noEmit
+npm test           # Jest (behaviour suite deferred; config allows empty)
+```
 
-# Learn More
+## Known follow-ups / approximations
 
-To learn more about React Native, take a look at the following resources:
+- **Poppins** is referenced in theme tokens but font files are not bundled yet (system fallback).
+- Search idle genre tiles reuse cached upcoming backdrops (decorative, not tappable genre filters).
+- Figma date/showtime step before seats is omitted; Get Tickets goes straight to the seat map.
+- No dedicated image-cache native module (plain `Image`).
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+## Design reference
+
+Figma: [Tentwenty — App Test](https://www.figma.com/design/4e1pQ2l0VkLNgnaV7xNlFW/Tentwenty---App-Test?node-id=21-234)
+
+Exported reference frames: `docs/planning/figma-refs/`.
