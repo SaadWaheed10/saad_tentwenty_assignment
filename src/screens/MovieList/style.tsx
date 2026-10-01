@@ -4,22 +4,25 @@ import { colors, spacing, typography } from '@theme/index';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface,
+    // Same white as the header so there's no grey "gutter" strip between
+    // the Watch/search header and the first movie card (Figma frame
+    // 42:13911 is flush white through that region).
+    backgroundColor: colors.background,
   },
-  // Top gap before the first card — matches Figma's 20px card top offset.
-  // Bottom padding (beyond the real tab bar, which the bottom-tabs
-  // navigator already reserves space for) just gives the last card some
-  // breathing room — matches the top gap for visual symmetry.
+  // Small top inset before the first card — Figma is ~10–12px, not a
+  // large spacer. Earlier 20px read as an empty gap under the header.
   listContent: {
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 20,
   },
   staleBanner: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
     borderRadius: 8,
-    padding: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
   },
   staleBannerText: {
     ...typography.caption,
