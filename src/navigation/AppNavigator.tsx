@@ -131,7 +131,12 @@ function MainTabs() {
         name="Watch"
         component={MovieListScreen}
         options={({ navigation }) => ({
-          title: 'Upcoming Movies',
+          // Ditto copy of the Figma header text (frame 42:13911 literally
+          // reads "Watch", not a separate invented title).
+          title: 'Watch',
+          headerTitleStyle: { ...typography.screenTitle, color: colors.text },
+          // Figma's header has no divider/shadow beneath it — flush white.
+          headerShadowVisible: false,
           tabBarIcon: renderWatchIcon,
           tabBarLabel: renderWatchLabel,
           // Matches the search icon in the Figma header (frame 42:13911).

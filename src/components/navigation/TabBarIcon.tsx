@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { colors } from '@theme/index';
 
 /**
@@ -55,7 +55,11 @@ export function WatchTabIcon({ focused }: TabIconProps) {
   const color = glyphColor(focused);
   return (
     <Badge focused={focused}>
-      <Text style={[styles.glyphText, { color, fontSize: GLYPH_SIZE }]}>▶</Text>
+      {/* Solid right-pointing triangle drawn via the border trick, not a
+          text glyph — keeps the same crisp, flat-vector look as the other
+          three View-drawn icons (a Unicode "▶" glyph rendered noticeably
+          heavier/different weight than the custom shapes). */}
+      <View style={[styles.playTriangle, { borderLeftColor: color }]} />
     </Badge>
   );
 }
@@ -103,8 +107,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  glyphText: {
-    includeFontPadding: false,
+  playTriangle: {
+    width: 0,
+    height: 0,
+    marginLeft: 2,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderTopWidth: 7,
+    borderBottomWidth: 7,
+    borderLeftWidth: 12,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
   },
   dotGrid: {
     width: GLYPH_SIZE,
