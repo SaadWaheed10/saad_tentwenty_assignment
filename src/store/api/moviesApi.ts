@@ -1,4 +1,9 @@
-import type { TmdbMovieDetail, TmdbUpcomingMoviesResponse, TmdbVideosResponse } from '@app-types/tmdb';
+import type {
+  TmdbMovieDetail,
+  TmdbSearchMoviesResponse,
+  TmdbUpcomingMoviesResponse,
+  TmdbVideosResponse,
+} from '@app-types/tmdb';
 import { tmdbApi } from './tmdbApi';
 
 /**
@@ -55,6 +60,19 @@ export const moviesApi = tmdbApi.injectEndpoints({
     getMovieVideos: builder.query<TmdbVideosResponse, number>({
       query: id => ({ url: `/movie/${id}/videos` }),
     }),
+
+    /**
+     * `GET /search/movie` — Screen 03. Keyed by the raw query string, so
+     * each distinct search term gets its own RTK Query cache entry. This
+     * is what actually guarantees "results always match the current
+     * query": changing the hook's arg (query) switches which cache entry
+     * is read, so an older in-flight request resolving late can never
+     * overwrite what's on screen for a newer query — no manual
+     * abort/race-tracking needed.
+     */
+    searchMovies: builder.query<TmdbSearchMoviesResponse, string>({
+      query: query => ({ url: '/search/movie', params: { query } }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -63,4 +81,5 @@ export const {
   useGetUpcomingMoviesInfiniteQuery,
   useGetMovieDetailQuery,
   useGetMovieVideosQuery,
+  useSearchMoviesQuery,
 } = moviesApi;

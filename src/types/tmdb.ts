@@ -29,6 +29,9 @@ export type TmdbPagedResponse<T> = {
 
 export type TmdbUpcomingMoviesResponse = TmdbPagedResponse<TmdbMovie>;
 
+/** `GET /search/movie?query=...` — Screen 03. Same shape as the upcoming list. */
+export type TmdbSearchMoviesResponse = TmdbPagedResponse<TmdbMovie>;
+
 export type TmdbGenre = { id: number; name: string };
 
 /**
