@@ -102,7 +102,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    // Top padding only — bottom padding is set at runtime from
+    // useSafeAreaInsets() so the bar clears the 3-button system nav.
+    paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.background,

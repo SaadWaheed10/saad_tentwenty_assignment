@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
@@ -30,6 +31,13 @@ function LegendItem({ color, label }: { color: string; label: string }) {
  */
 function SeatMappingScreen({ route: _route }: Props) {
   const { width } = useWindowDimensions();
+  // Same 3-button Android system-nav fix used on the tab bar — edge-to-
+  // edge is enabled (android/gradle.properties), so without insets.bottom
+  // the Total Price / Proceed to pay bar sits under the device nav buttons.
+  // Floor at 48 when insets report 0 (some Android WebView/edge-to-edge
+  // timing quirks); the device's 3-button bar is ~48dp / 84px.
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 48);
   const seatRows = useMemo(() => buildSeatRows(), []);
   const seatsPerRow = seatRows[0]?.seats.length ?? 0;
 
@@ -112,7 +120,7 @@ function SeatMappingScreen({ route: _route }: Props) {
         </View>
       </ScrollView>
 
-      <View style={styles.summaryBar}>
+      <View style={[styles.summaryBar, { paddingBottom: spacing.md + bottomPad }]}>
         <View style={styles.pricePill}>
           <Text style={styles.priceLabel}>Total Price</Text>
           <Text style={styles.priceValue}>$ {totalPrice}</Text>
