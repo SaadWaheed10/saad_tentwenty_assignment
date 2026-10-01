@@ -16,7 +16,10 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   MovieDetail: { movieId: number };
   MovieSearch: undefined;
-  SeatMapping: { movieId: number };
+  /** Figma 06 — date + showtime before seats. */
+  ShowtimeSelection: { movieId: number };
+  /** Figma 07 — seat map; sessionLabel e.g. "March 5, 2021 | 12:30 Hall 1". */
+  SeatMapping: { movieId: number; movieTitle: string; sessionLabel: string };
   TrailerPlayer: { videoKey: string };
 };
 

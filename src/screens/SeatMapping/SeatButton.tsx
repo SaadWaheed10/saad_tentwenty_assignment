@@ -10,10 +10,7 @@ type SeatButtonProps = {
   onToggle: (seat: Seat) => void;
 };
 
-/**
- * Seat cell — filled rectangle matching Figma's seat map (screen 07):
- * gold = selected, grey = unavailable, purple = VIP, light blue = regular.
- */
+/** Figma seat glyph — rounded-top rectangle (VIP purple / Regular blue / grey / gold). */
 function SeatButton({ seat, isSelected, size, onToggle }: SeatButtonProps) {
   const isUnavailable = seat.availability === 'unavailable';
 
@@ -24,14 +21,19 @@ function SeatButton({ seat, isSelected, size, onToggle }: SeatButtonProps) {
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityState={{ disabled: isUnavailable, selected: isSelected }}
-      accessibilityLabel={`Seat ${seat.id}${
+      accessibilityLabel={`Seat ${seat.number} row ${seat.row}${
         isUnavailable ? ', unavailable' : isSelected ? ', selected' : ', available'
       }`}
-      style={[styles.seatHit, { width: size, height: size }]}>
+      style={[styles.seatHit, { width: size, height: size * 0.85 }]}>
       <View
         style={[
           styles.seat,
-          { width: size * 0.85, height: size * 0.55 },
+          {
+            width: size * 0.78,
+            height: size * 0.55,
+            borderTopLeftRadius: size * 0.35,
+            borderTopRightRadius: size * 0.35,
+          },
           seat.tier === 'vip' ? styles.seatVip : styles.seatRegular,
           isSelected && styles.seatSelected,
           isUnavailable && styles.seatUnavailable,

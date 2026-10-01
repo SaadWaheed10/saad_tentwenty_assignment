@@ -95,7 +95,12 @@ Details: [`.cursor/rules/03-offline-data.mdc`](.cursor/rules/03-offline-data.mdc
 
 ## Seat mapping
 
-UI-only static grid (VIP / Regular / unavailable / selected). Selection is local React state — discarded on leave. **No** booking API, payment, or persistence.
+UI-only flow matching Figma 06 → 07:
+
+1. **Showtime selection** — date chips + showtime cards → Select Seats  
+2. **Seat map** — custom header (movie + session), screen, aisles, VIP/Regular, zoom, legend, Total Price / Proceed to pay  
+
+Selection is local React state — discarded on leave. **No** booking API, payment, or persistence.
 
 ## Project layout
 

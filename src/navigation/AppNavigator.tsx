@@ -21,6 +21,7 @@ import MovieListScreen from '@screens/MovieList';
 import MovieDetailScreen from '@screens/MovieDetail';
 import MovieSearchScreen from '@screens/MovieSearch';
 import SeatMappingScreen from '@screens/SeatMapping';
+import ShowtimeSelectionScreen from '@screens/SeatMapping/ShowtimeSelectionScreen';
 import TrailerPlayerScreen from '@screens/TrailerPlayer';
 import {
   DashboardScreen,
@@ -208,9 +209,14 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="ShowtimeSelection"
+          component={ShowtimeSelectionScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="SeatMapping"
           component={SeatMappingScreen}
-          options={{ title: 'Select Seats' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="TrailerPlayer"

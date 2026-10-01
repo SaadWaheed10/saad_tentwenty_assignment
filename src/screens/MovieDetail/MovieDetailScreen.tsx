@@ -28,8 +28,8 @@ const GENRE_CHIP_COLORS = [
  * Screen 02 — Movie detail (Figma frame 42:756).
  *
  * `GET /movie/{id}` + `/videos` + `/images`, all cached per movie id for
- * offline-first revisits. "Get Tickets" leads to the (UI-only) seat map —
- * no real booking/purchase logic exists anywhere here.
+ * offline-first revisits. "Get Tickets" opens the date/showtime picker
+ * (Figma 06), then the seat map (Figma 07) — UI only, no booking.
  */
 function MovieDetailScreen({ route, navigation }: Props) {
   const { movieId } = route.params;
@@ -55,7 +55,7 @@ function MovieDetailScreen({ route, navigation }: Props) {
   }, [navigation, trailer]);
 
   const handleGetTickets = useCallback(() => {
-    navigation.navigate('SeatMapping', { movieId });
+    navigation.navigate('ShowtimeSelection', { movieId });
   }, [navigation, movieId]);
 
   const handleRefresh = useCallback(() => {
