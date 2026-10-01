@@ -17,6 +17,7 @@ export type RootStackParamList = {
   MovieDetail: { movieId: number };
   MovieSearch: undefined;
   SeatMapping: { movieId: number };
+  TrailerPlayer: { videoKey: string };
 };
 
 declare global {

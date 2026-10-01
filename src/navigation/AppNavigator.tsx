@@ -21,6 +21,7 @@ import MovieListScreen from '@screens/MovieList';
 import MovieDetailScreen from '@screens/MovieDetail';
 import MovieSearchScreen from '@screens/MovieSearch';
 import SeatMappingScreen from '@screens/SeatMapping';
+import TrailerPlayerScreen from '@screens/TrailerPlayer';
 import {
   DashboardScreen,
   MediaLibraryScreen,
@@ -179,7 +180,22 @@ function AppNavigator() {
         <Stack.Screen
           name="MovieDetail"
           component={MovieDetailScreen}
-          options={{ title: 'Details' }}
+          options={{
+            // Figma's detail frame (node 42:756) overlays a transparent
+            // header directly on the backdrop image, with the back arrow
+            // and "Watch" title in white — not a separate white bar.
+            // `headerTransparent` alone isn't enough: the shared
+            // `headerStyle.backgroundColor` from the Stack.Navigator's
+            // screenOptions still gets merged in, painting an opaque white
+            // bar (with invisible white-on-white text) unless explicitly
+            // cleared here too.
+            title: 'Watch',
+            headerTransparent: true,
+            headerStyle: { backgroundColor: 'transparent' },
+            headerTintColor: colors.white,
+            headerTitleStyle: { ...typography.h3, color: colors.white },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="MovieSearch"
@@ -190,6 +206,15 @@ function AppNavigator() {
           name="SeatMapping"
           component={SeatMappingScreen}
           options={{ title: 'Select Seats' }}
+        />
+        <Stack.Screen
+          name="TrailerPlayer"
+          component={TrailerPlayerScreen}
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

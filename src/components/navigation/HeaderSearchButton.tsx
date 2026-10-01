@@ -23,9 +23,14 @@ const styles = StyleSheet.create({
   button: {
     padding: 4,
   },
+  // The exported Figma asset (docs/planning/figma-refs/header_icons.png)
+  // bakes in a lot of surrounding whitespace around the glyph itself — at
+  // a "true" 22x22 box the visible magnifying glass renders tiny next to
+  // the 24px header title. Sized up to compensate so the *visible* glyph
+  // reads at roughly the right proportion to the title text.
   icon: {
-    width: 22,
-    height: 22,
+    width: 38,
+    height: 38,
   },
 });
 

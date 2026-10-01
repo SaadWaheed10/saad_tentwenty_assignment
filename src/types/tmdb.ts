@@ -28,3 +28,30 @@ export type TmdbPagedResponse<T> = {
 };
 
 export type TmdbUpcomingMoviesResponse = TmdbPagedResponse<TmdbMovie>;
+
+export type TmdbGenre = { id: number; name: string };
+
+/**
+ * `GET /movie/{id}` — superset of the list-item shape (TmdbMovie) plus
+ * detail-only fields the Detail screen (Figma frame 42:756) actually uses.
+ */
+export type TmdbMovieDetail = TmdbMovie & {
+  genres: TmdbGenre[];
+  runtime: number | null;
+  tagline: string;
+};
+
+/** `GET /movie/{id}/videos` — we only use YouTube trailers from this. */
+export type TmdbVideo = {
+  id: string;
+  key: string;
+  site: string;
+  type: string;
+  official: boolean;
+  name: string;
+};
+
+export type TmdbVideosResponse = {
+  id: number;
+  results: TmdbVideo[];
+};

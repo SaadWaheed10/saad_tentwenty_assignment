@@ -1,4 +1,4 @@
-import type { TmdbUpcomingMoviesResponse } from '@app-types/tmdb';
+import type { TmdbMovieDetail, TmdbUpcomingMoviesResponse, TmdbVideosResponse } from '@app-types/tmdb';
 import { tmdbApi } from './tmdbApi';
 
 /**
@@ -38,8 +38,29 @@ export const moviesApi = tmdbApi.injectEndpoints({
         params: { page: pageParam },
       }),
     }),
+
+    /**
+     * `GET /movie/{id}` — Screen 02 (movie detail, Figma frame 42:756).
+     * Cached per movie id so revisiting a detail screen is instant and
+     * offline-capable, same persisted-cache strategy as the list.
+     */
+    getMovieDetail: builder.query<TmdbMovieDetail, number>({
+      query: id => ({ url: `/movie/${id}` }),
+    }),
+
+    /**
+     * `GET /movie/{id}/videos` — source of the trailer's YouTube key for
+     * the full-screen trailer flow (see screens/TrailerPlayer).
+     */
+    getMovieVideos: builder.query<TmdbVideosResponse, number>({
+      query: id => ({ url: `/movie/${id}/videos` }),
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetUpcomingMoviesInfiniteQuery } = moviesApi;
+export const {
+  useGetUpcomingMoviesInfiniteQuery,
+  useGetMovieDetailQuery,
+  useGetMovieVideosQuery,
+} = moviesApi;
