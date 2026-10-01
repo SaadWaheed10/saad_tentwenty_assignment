@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import type { Seat } from './seatData';
 import { styles } from './style';
 
@@ -10,6 +10,10 @@ type SeatButtonProps = {
   onToggle: (seat: Seat) => void;
 };
 
+/**
+ * Seat cell — filled rectangle matching Figma's seat map (screen 07):
+ * gold = selected, grey = unavailable, purple = VIP, light blue = regular.
+ */
 function SeatButton({ seat, isSelected, size, onToggle }: SeatButtonProps) {
   const isUnavailable = seat.availability === 'unavailable';
 
@@ -23,21 +27,16 @@ function SeatButton({ seat, isSelected, size, onToggle }: SeatButtonProps) {
       accessibilityLabel={`Seat ${seat.id}${
         isUnavailable ? ', unavailable' : isSelected ? ', selected' : ', available'
       }`}
-      style={[
-        styles.seat,
-        { width: size, height: size, borderRadius: size / 4 },
-        seat.tier === 'premium' && styles.seatPremium,
-        isSelected && styles.seatSelected,
-        isUnavailable && styles.seatUnavailable,
-      ]}>
-      <Text
+      style={[styles.seatHit, { width: size, height: size }]}>
+      <View
         style={[
-          styles.seatLabel,
-          isSelected && styles.seatLabelSelected,
-          isUnavailable && styles.seatLabelUnavailable,
-        ]}>
-        {seat.number}
-      </Text>
+          styles.seat,
+          { width: size * 0.85, height: size * 0.55 },
+          seat.tier === 'vip' ? styles.seatVip : styles.seatRegular,
+          isSelected && styles.seatSelected,
+          isUnavailable && styles.seatUnavailable,
+        ]}
+      />
     </TouchableOpacity>
   );
 }

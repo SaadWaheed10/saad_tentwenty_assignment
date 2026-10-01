@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xl,
     alignItems: 'center',
   },
@@ -17,20 +17,16 @@ export const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     width: '100%',
   },
-  // A simple curved "cinema screen" indicator — trapezoid via border
-  // widths, same CSS-trick approach already used elsewhere in this app
-  // for flat vector shapes (no SVG dependency).
   screenIndicator: {
-    width: '80%',
+    width: '85%',
     height: 0,
-    borderBottomWidth: 18,
-    borderBottomColor: colors.surfaceMuted,
-    borderLeftWidth: 24,
+    borderBottomWidth: 14,
+    borderBottomColor: colors.primary,
+    borderLeftWidth: 28,
     borderLeftColor: 'transparent',
-    borderRightWidth: 24,
+    borderRightWidth: 28,
     borderRightColor: 'transparent',
-    borderTopLeftRadius: 100,
-    borderTopRightRadius: 100,
+    opacity: 0.55,
   },
   screenLabel: {
     ...typography.label,
@@ -42,82 +38,64 @@ export const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  tierLabel: {
-    ...typography.label,
-    color: colors.textMuted,
-    alignSelf: 'flex-start',
-    marginTop: spacing.md,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   rowLabel: {
     ...typography.caption,
     color: colors.textMuted,
-    width: 20,
+    width: 18,
     textAlign: 'center',
+    marginRight: 4,
   },
   seatsInRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
-  seat: {
+  seatHit: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.border,
   },
-  seatPremium: {
-    borderColor: colors.secondaryGold,
+  seat: {
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  seatRegular: {
+    backgroundColor: colors.primary,
+  },
+  seatVip: {
+    backgroundColor: colors.secondaryPurple,
   },
   seatSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.secondaryGold,
   },
   seatUnavailable: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.surfaceMuted,
-  },
-  seatLabel: {
-    ...typography.caption,
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-  seatLabelSelected: {
-    color: colors.white,
-    fontWeight: '700' as const,
-  },
-  seatLabelUnavailable: {
-    color: colors.grayMid,
+    backgroundColor: colors.grayMid,
   },
   legend: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.lg,
+    justifyContent: 'space-between',
+    width: '100%',
     marginTop: spacing.xl,
     flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    minWidth: '45%',
   },
   legendSwatch: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    width: 18,
+    height: 12,
+    borderRadius: 3,
   },
   legendLabel: {
     ...typography.caption,
-    color: colors.textMuted,
+    color: colors.text,
   },
   summaryBar: {
     flexDirection: 'row',
@@ -128,22 +106,49 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.background,
+    gap: spacing.sm,
   },
-  summaryCount: {
-    ...typography.h3,
-    color: colors.text,
+  pricePill: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minWidth: 110,
   },
-  summaryLabels: {
+  priceLabel: {
     ...typography.caption,
     color: colors.textMuted,
+  },
+  priceValue: {
+    ...typography.h3,
+    color: colors.text,
     marginTop: 2,
-    maxWidth: 220,
   },
   bookButton: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.lg,
+    flex: 1,
+    borderRadius: radii.md,
   },
   bookButtonDisabled: {
     opacity: 0.4,
+  },
+  selectionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surface,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    marginTop: spacing.md,
+    gap: 6,
+  },
+  selectionChipText: {
+    ...typography.caption,
+    color: colors.text,
+  },
+  selectionChipClear: {
+    ...typography.body,
+    color: colors.textMuted,
+    paddingHorizontal: 4,
   },
 });

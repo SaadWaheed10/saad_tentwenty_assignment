@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
@@ -10,10 +10,10 @@ import { styles } from './style';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SeatMapping'>;
 
-const SEAT_GAP = 6;
-const ROW_LABEL_WIDTH = 20;
+const SEAT_GAP = 4;
+const ROW_LABEL_WIDTH = 22;
 const MIN_SEAT_SIZE = 22;
-const MAX_SEAT_SIZE = 32;
+const MAX_SEAT_SIZE = 30;
 
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
@@ -25,27 +25,14 @@ function LegendItem({ color, label }: { color: string; label: string }) {
 }
 
 /**
- * Screen 04 — Seat mapping. UI ONLY (.cursor/rules/00-assignment-core.mdc,
- * .cursor/rules/04-screens-ux.mdc): no booking API, no persistence, no
- * payment, no network calls. Selection state is local component state —
- * intentionally lost on navigating away, which is exactly what "no
- * persistence" calls for here. `movieId` is accepted (so this screen is
- * reachable per-movie from Detail) but never used to fetch anything.
- *
- * Seat data (seatData.ts) is fixed, fake, and deterministic — standing in
- * for a real seat-availability backend this screen never calls. "Book Now"
- * is intentionally a dead-end (no booking flow exists in this assignment)
- * — it only reflects selection state, never submits anything.
+ * Screen 04 — Seat mapping (Figma screen 07). UI ONLY: no booking API,
+ * persistence, payment, or network. Selection is local component state.
  */
 function SeatMappingScreen({ route: _route }: Props) {
   const { width } = useWindowDimensions();
   const seatRows = useMemo(() => buildSeatRows(), []);
   const seatsPerRow = seatRows[0]?.seats.length ?? 0;
 
-  // Responsive seat sizing so the grid stays aligned and fully visible in
-  // both portrait and landscape (.cursor/rules/04-screens-ux.mdc: "Works in
-  // portrait and landscape without breaking alignment") — recomputed on
-  // every width change (i.e. on rotation) via useWindowDimensions.
   const seatSize = useMemo(() => {
     const availableWidth = width - spacing.lg * 2 - ROW_LABEL_WIDTH;
     const sizeFromWidth = (availableWidth - SEAT_GAP * (seatsPerRow - 1)) / seatsPerRow;
@@ -66,6 +53,8 @@ function SeatMappingScreen({ route: _route }: Props) {
     });
   }, []);
 
+  const handleClear = useCallback(() => setSelectedIds(new Set()), []);
+
   const selectedSeats = useMemo(
     () => seatRows.flatMap(r => r.seats).filter(seat => selectedIds.has(seat.id)),
     [seatRows, selectedIds],
@@ -76,7 +65,10 @@ function SeatMappingScreen({ route: _route }: Props) {
     [selectedSeats],
   );
 
-  let previousTier: string | null = null;
+  const selectionSummary =
+    selectedSeats.length > 0
+      ? `${selectedSeats.map(s => s.number).join(', ')} / ${selectedSeats[0]?.row ?? ''} row`
+      : null;
 
   return (
     <View style={styles.container}>
@@ -87,55 +79,46 @@ function SeatMappingScreen({ route: _route }: Props) {
         </View>
 
         <View style={styles.grid}>
-          {seatRows.map(row => {
-            const showTierLabel = row.tier !== previousTier;
-            previousTier = row.tier;
-            return (
-              <React.Fragment key={row.row}>
-                {showTierLabel ? (
-                  <Text style={styles.tierLabel}>
-                    {row.tier === 'premium' ? 'Premium' : 'Standard'} — ${SEAT_PRICE[row.tier]}
-                  </Text>
-                ) : null}
-                <View style={styles.row}>
-                  <Text style={styles.rowLabel}>{row.row}</Text>
-                  <View style={styles.seatsInRow}>
-                    {row.seats.map(seat => (
-                      <SeatButton
-                        key={seat.id}
-                        seat={seat}
-                        size={seatSize}
-                        isSelected={selectedIds.has(seat.id)}
-                        onToggle={handleToggleSeat}
-                      />
-                    ))}
-                  </View>
-                </View>
-              </React.Fragment>
-            );
-          })}
+          {seatRows.map(row => (
+            <View key={row.row} style={styles.row}>
+              <Text style={styles.rowLabel}>{row.row}</Text>
+              <View style={styles.seatsInRow}>
+                {row.seats.map(seat => (
+                  <SeatButton
+                    key={seat.id}
+                    seat={seat}
+                    size={seatSize}
+                    isSelected={selectedIds.has(seat.id)}
+                    onToggle={handleToggleSeat}
+                  />
+                ))}
+              </View>
+            </View>
+          ))}
         </View>
 
+        {selectionSummary ? (
+          <TouchableOpacity style={styles.selectionChip} onPress={handleClear}>
+            <Text style={styles.selectionChipText}>{selectionSummary}</Text>
+            <Text style={styles.selectionChipClear}>✕</Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.legend}>
-          <LegendItem color={colors.surface} label="Available" />
-          <LegendItem color={colors.primary} label="Selected" />
-          <LegendItem color={colors.surfaceMuted} label="Unavailable" />
+          <LegendItem color={colors.secondaryGold} label="Selected" />
+          <LegendItem color={colors.grayMid} label="Not available" />
+          <LegendItem color={colors.secondaryPurple} label={`VIP (${SEAT_PRICE.vip}$)`} />
+          <LegendItem color={colors.primary} label={`Regular (${SEAT_PRICE.regular}$)`} />
         </View>
       </ScrollView>
 
       <View style={styles.summaryBar}>
-        <View>
-          <Text style={styles.summaryCount}>
-            {selectedSeats.length} {selectedSeats.length === 1 ? 'Seat' : 'Seats'} selected
-          </Text>
-          <Text style={styles.summaryLabels} numberOfLines={1}>
-            {selectedSeats.length > 0
-              ? selectedSeats.map(seat => seat.id).join(', ')
-              : 'Tap seats to select'}
-          </Text>
+        <View style={styles.pricePill}>
+          <Text style={styles.priceLabel}>Total Price</Text>
+          <Text style={styles.priceValue}>$ {totalPrice}</Text>
         </View>
         <Button
-          title={`Book Now · $${totalPrice}`}
+          title="Proceed to pay"
           disabled={selectedSeats.length === 0}
           style={[styles.bookButton, selectedSeats.length === 0 && styles.bookButtonDisabled]}
         />

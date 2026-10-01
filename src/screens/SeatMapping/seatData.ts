@@ -1,8 +1,8 @@
-export type SeatTier = 'standard' | 'premium';
+export type SeatTier = 'regular' | 'vip';
 export type SeatAvailability = 'available' | 'unavailable';
 
 export type Seat = {
-  id: string; // e.g. "A1"
+  id: string;
   row: string;
   number: number;
   tier: SeatTier;
@@ -15,14 +15,11 @@ export type SeatRow = {
   seats: Seat[];
 };
 
-const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const SEATS_PER_ROW = 10;
-const PREMIUM_ROWS = new Set(['A', 'B']);
+// Figma seat map: VIP rows toward the front, Regular behind.
+const VIP_ROWS = new Set(['A', 'B', 'C']);
 
-// Fixed, deterministic "already booked" seats — fake static data standing
-// in for a real seat-availability backend, which this UI-only screen
-// never calls (.cursor/rules/04-screens-ux.mdc / 00-assignment-core.mdc:
-// "no booking logic, no persistence, no payment, no network calls").
 const UNAVAILABLE_SEAT_IDS = new Set([
   'C3',
   'C4',
@@ -34,17 +31,19 @@ const UNAVAILABLE_SEAT_IDS = new Set([
   'G10',
   'H5',
   'H6',
+  'I4',
+  'J2',
 ]);
 
-/** Fake per-tier pricing — purely cosmetic, no payment/booking wired to it. */
+/** Figma legend prices — cosmetic only, no payment wired. */
 export const SEAT_PRICE: Record<SeatTier, number> = {
-  standard: 10,
-  premium: 18,
+  regular: 50,
+  vip: 150,
 };
 
 export function buildSeatRows(): SeatRow[] {
   return ROWS.map(row => {
-    const tier: SeatTier = PREMIUM_ROWS.has(row) ? 'premium' : 'standard';
+    const tier: SeatTier = VIP_ROWS.has(row) ? 'vip' : 'regular';
     const seats: Seat[] = Array.from({ length: SEATS_PER_ROW }, (_, index) => {
       const number = index + 1;
       const id = `${row}${number}`;
