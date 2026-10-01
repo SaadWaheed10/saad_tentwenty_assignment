@@ -1,56 +1,176 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  createBottomTabNavigator,
+  type BottomTabNavigationProp,
+} from '@react-navigation/bottom-tabs';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
-import { HeaderSearchButton } from '@components/index';
+import {
+  DashboardTabIcon,
+  HeaderSearchButton,
+  MediaLibraryTabIcon,
+  MoreTabIcon,
+  TabBarLabel,
+  WatchTabIcon,
+} from '@components/index';
 import MovieListScreen from '@screens/MovieList';
 import MovieDetailScreen from '@screens/MovieDetail';
 import MovieSearchScreen from '@screens/MovieSearch';
 import SeatMappingScreen from '@screens/SeatMapping';
+import {
+  DashboardScreen,
+  MediaLibraryScreen,
+  MoreScreen,
+} from '@screens/Placeholder';
 import { colors, typography } from '@theme/index';
-import { RootStackParamList } from './types';
+import { MainTabParamList, RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
-type MovieListNavigation = NativeStackNavigationProp<RootStackParamList, 'MovieList'>;
+type RootStackNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 // Defined at module scope (not inside AppNavigator's render) so it's a
 // stable component reference, not a new one created on every render — see
 // react/no-unstable-nested-components.
-function MovieListHeaderRight({ navigation }: { navigation: MovieListNavigation }) {
-  return <HeaderSearchButton onPress={() => navigation.navigate('MovieSearch')} />;
+//
+// `navigation` here is the "Watch" tab's own navigation object, which is
+// only typed for MainTabParamList — it has no static knowledge of
+// 'MovieSearch' (a sibling of MainTabs in the *root* stack). `getParent`
+// with an explicit type param is React Navigation's documented escape
+// hatch for exactly this case, rather than an unsafe cast.
+function WatchHeaderRight({ navigation }: { navigation: BottomTabNavigationProp<MainTabParamList, 'Watch'> }) {
+  return (
+    <HeaderSearchButton
+      onPress={() => navigation.getParent<RootStackNavigation>()?.navigate('MovieSearch')}
+    />
+  );
+}
+
+// Stable, module-scope render functions for `tabBarIcon`/`tabBarLabel` —
+// defined once, not recreated per MainTabs render, per
+// react/no-unstable-nested-components.
+function renderDashboardIcon({ focused }: { focused: boolean }) {
+  return <DashboardTabIcon focused={focused} />;
+}
+function renderDashboardLabel({ focused }: { focused: boolean }) {
+  return <TabBarLabel focused={focused}>Dashboard</TabBarLabel>;
+}
+function renderWatchIcon({ focused }: { focused: boolean }) {
+  return <WatchTabIcon focused={focused} />;
+}
+function renderWatchLabel({ focused }: { focused: boolean }) {
+  return <TabBarLabel focused={focused}>Watch</TabBarLabel>;
+}
+function renderMediaLibraryIcon({ focused }: { focused: boolean }) {
+  return <MediaLibraryTabIcon focused={focused} />;
+}
+function renderMediaLibraryLabel({ focused }: { focused: boolean }) {
+  return <TabBarLabel focused={focused}>Media Library</TabBarLabel>;
+}
+function renderMoreIcon({ focused }: { focused: boolean }) {
+  return <MoreTabIcon focused={focused} />;
+}
+function renderMoreLabel({ focused }: { focused: boolean }) {
+  return <TabBarLabel focused={focused}>More</TabBarLabel>;
+}
+
+const sharedHeaderOptions = {
+  headerStyle: { backgroundColor: colors.background },
+  headerTintColor: colors.text,
+  // Matches the Figma header treatment (frame 42:13911, "Watch"):
+  // left-aligned, Poppins Medium 16 — not a bold centered title.
+  headerTitleAlign: 'left' as const,
+  headerTitleStyle: { ...typography.h3, color: colors.text },
+};
+
+/**
+ * Bottom tab navigator — matches the Figma bottom bar (node 42:13916).
+ * Only "Watch" maps to a real assignment screen (Movie List); the other
+ * three are real, tappable tabs (per the "use the actual library"
+ * direction) that render a neutral placeholder — see
+ * screens/Placeholder/PlaceholderScreen.tsx for why they're not fully
+ * built out.
+ */
+function MainTabs() {
+  const insets = useSafeAreaInsets();
+  return (
+    <Tab.Navigator
+      initialRouteName="Watch"
+      screenOptions={{
+        ...sharedHeaderOptions,
+        tabBarShowLabel: true,
+        tabBarStyle: {
+          backgroundColor: colors.tabBarBackground,
+          // 75pt content height (Figma node 42:13916) plus the device's
+          // own safe-area/system-nav-bar inset — on 3-button Android nav,
+          // omitting insets.bottom here clips the labels right at the
+          // system bar.
+          height: 75 + insets.bottom,
+          paddingBottom: insets.bottom,
+          borderTopWidth: 0,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+        },
+        tabBarItemStyle: { paddingTop: 10 },
+      }}>
+      <Tab.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{
+          title: 'Dashboard',
+          tabBarIcon: renderDashboardIcon,
+          tabBarLabel: renderDashboardLabel,
+        }}
+      />
+      <Tab.Screen
+        name="Watch"
+        component={MovieListScreen}
+        options={({ navigation }) => ({
+          title: 'Upcoming Movies',
+          tabBarIcon: renderWatchIcon,
+          tabBarLabel: renderWatchLabel,
+          // Matches the search icon in the Figma header (frame 42:13911).
+          // `WatchHeaderRight` itself is a stable, module-scope component
+          // (not defined inline), so this wrapper carries no remount risk
+          // despite the lint rule's generic heuristic — React Navigation's
+          // `headerRight` option is, by its own API contract, always
+          // re-evaluated as a function per render.
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerRight: () => <WatchHeaderRight navigation={navigation} />,
+        })}
+      />
+      <Tab.Screen
+        name="MediaLibrary"
+        component={MediaLibraryScreen}
+        options={{
+          title: 'Media Library',
+          tabBarIcon: renderMediaLibraryIcon,
+          tabBarLabel: renderMediaLibraryLabel,
+        }}
+      />
+      <Tab.Screen
+        name="More"
+        component={MoreScreen}
+        options={{
+          title: 'More',
+          tabBarIcon: renderMoreIcon,
+          tabBarLabel: renderMoreLabel,
+        }}
+      />
+    </Tab.Navigator>
+  );
 }
 
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="MovieList"
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
-          headerTintColor: colors.text,
-          // Matches the Figma header treatment (frame 42:13911, "Watch"):
-          // left-aligned, Poppins Medium 16 — not a bold centered title.
-          headerTitleAlign: 'left',
-          headerTitleStyle: { ...typography.h3, color: colors.text },
-        }}>
-        <Stack.Screen
-          name="MovieList"
-          component={MovieListScreen}
-          options={({ navigation }) => ({
-            title: 'Upcoming Movies',
-            // Matches the search icon in the Figma header (frame 42:13911).
-            // `MovieListHeaderRight` itself is a stable, module-scope
-            // component (not defined inline), so this wrapper carries no
-            // remount risk despite the lint rule's generic heuristic —
-            // React Navigation's `headerRight` option is, by its own API
-            // contract, always re-evaluated as a function per render.
-            // eslint-disable-next-line react/no-unstable-nested-components
-            headerRight: () => <MovieListHeaderRight navigation={navigation} />,
-          })}
-        />
+      <Stack.Navigator initialRouteName="MainTabs" screenOptions={sharedHeaderOptions}>
+        <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen
           name="MovieDetail"
           component={MovieDetailScreen}

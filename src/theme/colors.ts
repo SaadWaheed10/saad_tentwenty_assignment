@@ -31,6 +31,14 @@ export const colors = {
   grayMid: '#ADB3BC',
   offWhite: '#FCFCFE',
   overlayDark: 'rgba(0, 0, 0, 0.5)',
+
+  // Bottom tab bar (Figma "Watch" frame, node 42:13916) — sampled directly
+  // from the exported PNG (docs/planning/figma-refs/bottom_bar.png) via
+  // pixel inspection, since the Figma data API was rate-limited when this
+  // was built. The focused tab's icon reuses this same background color on
+  // a white badge (a "cutout" effect), rather than a separate accent color.
+  tabBarBackground: '#2E2739',
+  tabBarInactive: '#9F9CA4',
 } as const;
 
 export type ColorKey = keyof typeof colors;

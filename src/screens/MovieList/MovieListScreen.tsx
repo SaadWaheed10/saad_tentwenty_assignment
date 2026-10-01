@@ -1,22 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlatList, RefreshControl, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  BOTTOM_TAB_BAR_HEIGHT,
-  BottomTabBarVisual,
-  EmptyState,
-  ErrorView,
-  LoadingView,
-  MovieListItem,
-} from '@components/index';
-import type { RootStackParamList } from '@navigation/types';
+import { EmptyState, ErrorView, LoadingView, MovieListItem } from '@components/index';
+import type { MainTabParamList, RootStackParamList } from '@navigation/types';
 import { useGetUpcomingMoviesInfiniteQuery } from '@store/api/moviesApi';
-import { spacing } from '@theme/index';
 import type { TmdbMovie } from '@app-types/tmdb';
 import { styles } from './style';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
+// Nested inside the "Watch" tab (see AppNavigator's MainTabs), which is
+// itself nested inside the root stack — composite props give correct
+// typing for `navigate('MovieDetail', ...)`, a sibling of MainTabs in the
+// root stack, not a sibling tab.
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Watch'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 /**
  * Screen 01 — Movie list ("Watch" in Figma, frame 42:13911).
@@ -28,11 +28,12 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MovieList'>;
  * Query's refetchOnFocus/refetchOnReconnect, enabled via setupListeners)
  * brings it up to date when back online.
  *
- * The screen title lives in the native stack header (see AppNavigator),
- * matching Figma's single left-aligned header — no duplicate in-body title.
+ * The screen title and the bottom tab bar live in the Watch tab/MainTabs
+ * navigator (see AppNavigator) — a real @react-navigation/bottom-tabs
+ * navigator, not a decorative overlay, so focus state, safe-area insets,
+ * and content-vs-tab-bar layout are all handled by the library itself.
  */
 function MovieListScreen({ navigation }: Props) {
-  const insets = useSafeAreaInsets();
   const {
     data,
     isLoading,
@@ -68,7 +69,6 @@ function MovieListScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <LoadingView message="Loading upcoming movies…" />
-        <BottomTabBarVisual />
       </View>
     );
   }
@@ -78,7 +78,6 @@ function MovieListScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <ErrorView description={describeError(error)} onRetry={refetch} />
-        <BottomTabBarVisual />
       </View>
     );
   }
@@ -91,7 +90,6 @@ function MovieListScreen({ navigation }: Props) {
           title="No upcoming movies"
           description="TMDb has nothing scheduled right now — check back soon."
         />
-        <BottomTabBarVisual />
       </View>
     );
   }
@@ -109,12 +107,7 @@ function MovieListScreen({ navigation }: Props) {
         data={movies}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => <MovieListItem movie={item} onPress={handleOpenMovie} />}
-        contentContainerStyle={[
-          styles.listContent,
-          // Clears the floating tab bar, which itself sits above the
-          // device's safe-area/system-nav-bar inset (BottomTabBarVisual).
-          { paddingBottom: BOTTOM_TAB_BAR_HEIGHT + insets.bottom + spacing.lg },
-        ]}
+        contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
             refreshing={isFetching && !isFetchingNextPage}
@@ -131,7 +124,6 @@ function MovieListScreen({ navigation }: Props) {
         maxToRenderPerBatch={8}
         windowSize={7}
       />
-      <BottomTabBarVisual />
     </View>
   );
 }
