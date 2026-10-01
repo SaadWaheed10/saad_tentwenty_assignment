@@ -1,4 +1,5 @@
 import type {
+  TmdbGenresResponse,
   TmdbMovieDetail,
   TmdbSearchMoviesResponse,
   TmdbUpcomingMoviesResponse,
@@ -73,6 +74,16 @@ export const moviesApi = tmdbApi.injectEndpoints({
     searchMovies: builder.query<TmdbSearchMoviesResponse, string>({
       query: query => ({ url: '/search/movie', params: { query } }),
     }),
+
+    /**
+     * `GET /genre/movie/list` — a small, static, unparameterised lookup
+     * table (no `id` arg, one shared cache entry). Used to label search
+     * results with a genre name (Figma's search result rows show a genre
+     * under the title) instead of the raw `genre_ids` TMDb returns.
+     */
+    getGenres: builder.query<TmdbGenresResponse, void>({
+      query: () => ({ url: '/genre/movie/list' }),
+    }),
   }),
   overrideExisting: false,
 });
@@ -82,4 +93,5 @@ export const {
   useGetMovieDetailQuery,
   useGetMovieVideosQuery,
   useSearchMoviesQuery,
+  useGetGenresQuery,
 } = moviesApi;

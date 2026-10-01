@@ -44,6 +44,9 @@ export type TmdbMovieDetail = TmdbMovie & {
   tagline: string;
 };
 
+/** `GET /genre/movie/list` — used to label search results by genre name. */
+export type TmdbGenresResponse = { genres: TmdbGenre[] };
+
 /** `GET /movie/{id}/videos` — we only use YouTube trailers from this. */
 export type TmdbVideo = {
   id: string;

@@ -1,21 +1,64 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { EmptyState, ErrorView, LoadingView, MovieListItem } from '@components/index';
+import { getTmdbImageUrl } from '@api/tmdbImage';
+import { EmptyState, ErrorView, LoadingView } from '@components/index';
 import type { RootStackParamList } from '@navigation/types';
-import { useSearchMoviesQuery } from '@store/api/moviesApi';
+import {
+  useGetGenresQuery,
+  useGetUpcomingMoviesInfiniteQuery,
+  useSearchMoviesQuery,
+} from '@store/api/moviesApi';
 import { useDebouncedValue } from '@hooks/index';
-import type { TmdbMovie } from '@app-types/tmdb';
+import type { TmdbGenre, TmdbMovie } from '@app-types/tmdb';
 import searchIconSource from '@assets/icons/search.png';
 import { colors } from '@theme/index';
+import GenreTile from './GenreTile';
+import SearchResultRow from './SearchResultRow';
 import { styles } from './style';
+
+// A curated subset of real TMDb genres (not every TMDb genre is visually
+// interesting as a browse tile, e.g. "TV Movie"/"War"). Figma's idle-state
+// grid has a "Holidays" tile, which isn't an actual TMDb genre — "Mystery"
+// stands in for it here since this grid is built from real genre/movie
+// data, not hand-picked art.
+const IDLE_GENRE_NAMES = [
+  'Comedy',
+  'Crime',
+  'Family',
+  'Documentary',
+  'Drama',
+  'Fantasy',
+  'Mystery',
+  'Horror',
+  'Science Fiction',
+  'Thriller',
+];
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MovieSearch'>;
 
 const SEARCH_DEBOUNCE_MS = 400;
 
 /**
- * Screen 03 — Movie search (`GET /3/search/movie`).
+ * Screen 03 — Movie search (`GET /3/search/movie`), row-list layout per the
+ * Figma search frame (thumbnail + title + genre subtitle + trailing glyph,
+ * not the Movie List's full-width backdrop card).
+ *
+ * Idle state (nothing typed yet) shows a 2-column genre browse grid, per
+ * Figma. Tile images are derived from the already-cached upcoming-movies
+ * list (first cached movie matching each genre's id) rather than issuing
+ * a separate `/discover/movie` call per tile — reuses a cache we already
+ * have, no extra network cost. Tiles are decorative (not tappable): tapping
+ * "Horror" into the title-only `/search/movie` endpoint wouldn't actually
+ * surface horror movies (it searches titles, not genres), so making tiles
+ * look actionable would be misleading.
+ *
+ * Figma's search flow has one more step this screen intentionally skips:
+ * submitting a query swaps the search bar for a "N Results Found" header
+ * on a second page. That submit-based flow works against "feel immediate"
+ * / live results as you type, so this screen keeps a single,
+ * always-editable search bar with live results instead.
  *
  * Freshness guarantee (.cursor/rules/04-screens-ux.mdc, non-negotiable):
  * results on screen must always match the CURRENT query. We debounce the
@@ -24,11 +67,12 @@ const SEARCH_DEBOUNCE_MS = 400;
  * (a new query) can never show a previous query's `data`, regardless of
  * which request resolves first on the wire. No manual AbortController /
  * race-tracking needed; it falls out of using the hook arg correctly.
- *
- * Distinguishes idle / typing (debounce pending) / loading / no-results /
- * error / content, per the same rule file.
  */
 function MovieSearchScreen({ navigation }: Props) {
+  // No header on this screen (see AppNavigator) — the search bar sits
+  // directly under the status bar per Figma, so it needs its own top
+  // safe-area padding that a header would otherwise have provided.
+  const insets = useSafeAreaInsets();
   const [inputValue, setInputValue] = useState('');
   const committedQuery = useDebouncedValue(inputValue.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -39,6 +83,46 @@ function MovieSearchScreen({ navigation }: Props) {
   const { data, isFetching, isError, refetch } = useSearchMoviesQuery(committedQuery, {
     skip: committedQuery.length === 0,
   });
+
+  // Genre names for the result rows' subtitles, and for the idle-state
+  // browse grid below — a small, static, unparameterised lookup fetched
+  // once and cached indefinitely.
+  const { data: genresData } = useGetGenresQuery();
+  const genreNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    genresData?.genres.forEach(genre => map.set(genre.id, genre.name));
+    return map;
+  }, [genresData]);
+
+  // Same cached query Screen 01 (Movie List) uses — subscribing to it here
+  // does not trigger a second network request if it's already fetched.
+  const { data: upcomingData } = useGetUpcomingMoviesInfiniteQuery();
+  const upcomingMovies = useMemo<TmdbMovie[]>(
+    () => upcomingData?.pages.flatMap(page => page.results) ?? [],
+    [upcomingData],
+  );
+
+  const genreTiles = useMemo(() => {
+    if (!genresData) {
+      return [];
+    }
+    return IDLE_GENRE_NAMES.map(name =>
+      genresData.genres.find((genre: TmdbGenre) => genre.name === name),
+    )
+      .filter((genre): genre is TmdbGenre => Boolean(genre))
+      .map(genre => {
+        const representativeMovie = upcomingMovies.find(
+          movie => movie.genre_ids.includes(genre.id) && movie.backdrop_path,
+        );
+        return {
+          id: genre.id,
+          label: genre.name === 'Science Fiction' ? 'Sci-Fi' : genre.name,
+          imageUrl: representativeMovie
+            ? getTmdbImageUrl(representativeMovie.backdrop_path, 'w342')
+            : null,
+        };
+      });
+  }, [genresData, upcomingMovies]);
 
   const results = useMemo<TmdbMovie[]>(() => data?.results ?? [], [data]);
 
@@ -53,11 +137,14 @@ function MovieSearchScreen({ navigation }: Props) {
 
   let content: React.ReactNode;
   if (committedQuery.length === 0) {
-    content = (
-      <EmptyState
-        title="Search for a movie"
-        description={'Try a title like "Resident Evil" or "Coyote vs. Acme".'}
-      />
+    content = genresData ? (
+      <ScrollView contentContainerStyle={styles.genreGrid} showsVerticalScrollIndicator={false}>
+        {genreTiles.map(tile => (
+          <GenreTile key={tile.id} label={tile.label} imageUrl={tile.imageUrl} />
+        ))}
+      </ScrollView>
+    ) : (
+      <LoadingView />
     );
   } else if (isDebouncePending || (isFetching && results.length === 0)) {
     content = <LoadingView message={`Searching "${committedQuery}"…`} />;
@@ -77,7 +164,16 @@ function MovieSearchScreen({ navigation }: Props) {
       <FlatList
         data={results}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item }) => <MovieListItem movie={item} onPress={handleOpenMovie} />}
+        renderItem={({ item }) => (
+          <SearchResultRow
+            movie={item}
+            genreName={
+              item.genre_ids.length > 0 ? genreNameById.get(item.genre_ids[0]) : undefined
+            }
+            onPress={handleOpenMovie}
+          />
+        )}
+        ListHeaderComponent={<Text style={styles.sectionLabel}>Top Results</Text>}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -87,7 +183,7 @@ function MovieSearchScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchBar}>
+      <View style={[styles.searchBar, { marginTop: insets.top + 12 }]}>
         <Image source={searchIconSource} style={styles.searchIcon} resizeMode="contain" />
         <TextInput
           value={inputValue}

@@ -200,7 +200,12 @@ function AppNavigator() {
         <Stack.Screen
           name="MovieSearch"
           component={MovieSearchScreen}
-          options={{ title: 'Search' }}
+          // Figma's search frame has no header bar / back button at all —
+          // the search pill itself sits directly under the status bar.
+          // Dismissing relies on the hardware back button (Android) /
+          // swipe-back gesture (iOS), both still work with headerShown
+          // false on a pushed native-stack screen.
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="SeatMapping"
